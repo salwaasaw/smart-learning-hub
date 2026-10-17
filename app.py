@@ -1,21 +1,20 @@
 import streamlit as st
 import random
-import os
 
 # Konfigurasi Halaman Web
 st.set_page_config(
-    page_title="Smart Learning Hub: Anti-Gagal Edition",
+    page_title="Smart Learning Hub: Arcade Edition",
     page_icon="🎮",
     layout="centered"
 )
 
-# Styling CSS Kustom
+# Styling CSS Kustom (Animasi Neon, Efek Denyut/Pulse, & UI Arcade)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
 
     .stApp {
-        background: radial-gradient(circle at center, #111827 0%, #030712 100%);
+        background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
         font-family: 'Plus Jakarta Sans', sans-serif;
         color: #f3f4f6;
     }
@@ -23,7 +22,7 @@ st.markdown("""
     .arcade-title {
         font-family: 'Orbitron', sans-serif;
         font-weight: 900;
-        font-size: 2rem;
+        font-size: 2.2rem;
         text-align: center;
         background: linear-gradient(135deg, #38bdf8 0%, #a855f7 50%, #ec4899 100%);
         -webkit-background-clip: text;
@@ -34,14 +33,28 @@ st.markdown("""
     .arcade-subtitle {
         font-family: 'Orbitron', sans-serif;
         text-align: center;
-        color: #9ca3af;
+        color: #94a3b8;
         font-size: 0.8rem;
         letter-spacing: 2px;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
+    }
+
+    /* Efek Animasi Denyut Monster Bergerak */
+    @keyframes pulseMonster {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.08); }
+        100% { transform: scale(1); }
+    }
+
+    .monster-container {
+        text-align: center;
+        font-size: 5rem;
+        animation: pulseMonster 1.5s infinite ease-in-out;
+        margin: 10px 0;
     }
 
     .game-arena {
-        background: rgba(17, 24, 39, 0.75);
+        background: rgba(30, 41, 59, 0.7);
         backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 20px;
@@ -53,10 +66,10 @@ st.markdown("""
     .status-panel {
         display: flex;
         justify-content: space-around;
-        background: rgba(31, 41, 55, 0.9);
+        background: rgba(15, 23, 42, 0.9);
         padding: 12px;
         border-radius: 12px;
-        border: 1px solid #4b5563;
+        border: 1px solid #334155;
         font-family: 'Orbitron', sans-serif;
         font-size: 0.85rem;
         margin-bottom: 15px;
@@ -84,7 +97,7 @@ st.markdown("""
     .stTextInput input {
         background-color: rgba(3, 7, 18, 0.9) !important;
         color: #ffffff !important;
-        border: 1px solid #4b5563 !important;
+        border: 1px solid #475569 !important;
         border-radius: 8px !important;
     }
     </style>
@@ -99,23 +112,22 @@ if "mode" not in st.session_state: st.session_state.mode = ""
 if "current_question" not in st.session_state: st.session_state.current_question = None
 
 # ==========================================
-# BANK SOAL MENGGUNAKAN GIF LOKAL GITHUB
+# BANK SOAL LENGKAP & ACAK OTOMATIS
 # ==========================================
-# Ganti dengan username GitHub kamu (misal: salwaasaw)
-GITHUB_USER = "salwaasaw"
-REPO_NAME = "smart-learning-hub"
-# URL mentah GitHub untuk memanggil file lokal
-RAW_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{REPO_NAME}/main/"
-
 MATH_BANK = [
-    {"q": "Berapakah hasil dari $12 \\times 5 - 15$ ?", "ans": 45, "monster": "Naga Api", "img": RAW_URL + "api.gif"},
-    {"q": "Berapakah hasil dari $8 \\times 8 + 20 - 4$ ?", "ans": 80, "monster": "Naga Aljabar", "img": RAW_URL + "api.gif"},
-    {"q": "Berapakah hasil dari $(50 \\div 2) + (5 \\times 4)$ ?", "ans": 45, "monster": "Naga Pecahan", "img": RAW_URL + "api.gif"}
+    {"q": "Berapakah hasil dari $12 \\times 5 - 15$ ?", "ans": 45, "monster": "Goblin Angka", "emoji": "👾"},
+    {"q": "Berapakah hasil dari $8 \\times 8 + 20 - 4$ ?", "ans": 80, "monster": "Naga Aljabar", "emoji": "🐉"},
+    {"q": "Berapakah hasil dari $(50 \\div 2) + (5 \\times 4)$ ?", "ans": 45, "monster": "Penyihir Pecahan", "emoji": "🧙‍♂️"},
+    {"q": "Berapakah hasil dari $145 - 25 \\times 4$ ?", "ans": 45, "monster": "Golem Logika", "emoji": "🤖"},
+    {"q": "Berapakah hasil dari $9 \\times 9 - 31$ ?", "ans": 50, "monster": "Ksatria Angka", "emoji": "🛡️"}
 ]
 
 ENGLISH_BANK = [
-    {"q": 'Lengkapi kalimat: "She _______ to the library yesterday."', "options": ["--- Pilih ---", "go", "went", "gone", "going"], "ans": "went", "monster": "Hantu Grammar", "img": RAW_URL + "hantu.gif"},
-    {"q": 'Apa sinonim dari kata "Brave"?', "options": ["--- Pilih ---", "Coward", "Courageous", "Lazy", "Sad"], "ans": "Courageous", "monster": "Hantu Kosakata", "img": RAW_URL + "hantu.gif"}
+    {"q": 'Lengkapi kalimat: "She _______ to the library yesterday to borrow a book."', "options": ["--- Pilih ---", "go", "went", "gone", "going"], "ans": "went", "monster": "Hantu Grammar", "emoji": "👻"},
+    {"q": 'Apa sinonim (persamaan kata) dari kata "Brave"?', "options": ["--- Pilih ---", "Coward", "Courageous", "Lazy", "Sad"], "ans": "Courageous", "monster": "Penyihir Kosakata", "emoji": "🧙‍♀️"},
+    {"q": 'Lengkapi kalimat Present Perfect: "They have _______ finished their homework."', "options": ["--- Pilih ---", "already", "yet", "still", "ever"], "ans": "already", "monster": "Goblin Tense", "emoji": "👺"},
+    {"q": 'Apa bentuk V2 (Past Tense) dari kata "Eat"?', "options": ["--- Pilih ---", "Eaten", "Ate", "Eating", "Eats"], "ans": "Ate", "monster": "Monster Irregular", "emoji": "🦖"},
+    {"q": 'Lengkapi kalimat: "I _______ a movie with my friends last night."', "options": ["--- Pilih ---", "watch", "watching", "watched", "watches"], "ans": "watched", "monster": "Bayangan Verb", "emoji": "👤"}
 ]
 
 def get_random_question(mode):
@@ -129,7 +141,7 @@ def get_random_question(mode):
 # ==========================================
 if st.session_state.page == "menu":
     st.markdown("<h1 class='arcade-title'>SMART LEARNING HUB</h1>", unsafe_allow_html=True)
-    st.markdown("<div class='arcade-subtitle'>// ANTI-GAGAL EDITION (GITHUB HOSTED GIF)</div>", unsafe_allow_html=True)
+    st.markdown("<div class='arcade-subtitle'>// ARCADE QUIZ & MONSTER ADVENTURE</div>", unsafe_allow_html=True)
     
     st.markdown("<div class='game-arena'>", unsafe_allow_html=True)
     st.subheader("👤 Masukkan Identitas Pemain")
@@ -185,13 +197,10 @@ elif st.session_state.page == "game":
     
     st.markdown("<div class='game-arena'>", unsafe_allow_html=True)
     
-    # Menampilkan GIF dari GitHub (Di-cache agar lancar)
-    col_img, col_txt = st.columns([1, 1.5])
-    with col_img:
-        st.image(q_data["img"], use_container_width=True) # use_container_width agar responsif
-    with col_txt:
-        st.markdown(f"### 👾 {q_data['monster']} Menghadang!")
-        st.markdown(f"**Soal:** {q_data['q']}")
+    # Bagian Animasi Monster Bergerak (Pulse Animation dengan Emoji HD)
+    st.markdown(f"<div class='monster-container'>{q_data['emoji']}</div>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='text-align: center; color: #38bdf8;'>{q_data['monster']} Menghadang!</h3>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align: center; font-size: 1.1rem; margin-bottom: 20px;'><b>Soal:</b> {q_data['q']}</p>", unsafe_allow_html=True)
 
     st.write("---")
 
