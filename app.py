@@ -21,7 +21,7 @@ def get_db_connection():
     except Exception as e:
         return None
 
-# STYLING CSS: Background Bergerak Jelas & Kontras Nyaman
+# STYLING CSS: Warna Teks Dijamin Putih & Jelas
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
@@ -37,21 +37,26 @@ st.markdown("""
         background-size: 300% 300%;
         animation: movingGradient 8s ease infinite;
         font-family: 'Plus Jakarta Sans', sans-serif;
-        color: #f8fafc;
+        color: #ffffff !important;
+    }
+
+    /* MEMBUAT SEMUA TEKS, LABEL, DAN PILIHAN MENJADI PUTIH TERANG */
+    .stMarkdown, p, label, .stRadio label, .stTextInput label, .stNumberInput label, span {
+        color: #ffffff !important;
     }
 
     .game-title {
         font-weight: 800;
         font-size: 2.2rem;
         text-align: center;
-        color: #ffffff;
+        color: #ffffff !important;
         letter-spacing: -0.5px;
         margin-bottom: 0px;
     }
 
     .game-subtitle {
         text-align: center;
-        color: #cbd5e1;
+        color: #e2e8f0 !important;
         font-size: 0.85rem;
         letter-spacing: 1.5px;
         margin-bottom: 25px;
@@ -91,6 +96,7 @@ st.markdown("""
         font-size: 0.9rem;
         font-weight: 700;
         margin-bottom: 20px;
+        color: #ffffff !important;
     }
 
     .stButton>button {
@@ -170,7 +176,6 @@ def get_new_question(mode):
     st.session_state.used_questions.append(chosen["id"])
     return chosen
 
-# Fungsi Simpan Skor ke MySQL
 def save_score_to_mysql():
     if not st.session_state.saved_to_db:
         conn = get_db_connection()
@@ -187,7 +192,7 @@ def save_score_to_mysql():
 # Menu Utama
 if st.session_state.page == "menu":
     st.markdown("<h1 class='game-title'>Smart Learning Hub</h1>", unsafe_allow_html=True)
-    st.markdown("<div class='game-subtitle'>Interactive Learning Platform</div>", unsafe_allow_html=True)
+    st.markdown("<div class='game-subtitle'>Interactive Learning Platform + Database</div>", unsafe_allow_html=True)
     
     st.markdown("<div class='card-clean'>", unsafe_allow_html=True)
     st.subheader("Identitas Pengguna")
@@ -223,16 +228,15 @@ if st.session_state.page == "menu":
 # Gameplay Arena
 elif st.session_state.page == "game":
     if st.session_state.game_over:
-        # Panggil fungsi simpan ke database otomatis saat game over
         save_score_to_mysql()
 
         st.markdown("<h2 style='text-align: center; color: #ef4444;'>Permainan Berakhir</h2>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align: center; color: #cbd5e1;'>{st.session_state.wrong_msg}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: center; color: #e2e8f0;'>{st.session_state.wrong_msg}</p>", unsafe_allow_html=True)
         st.markdown(f"""
             <div class='card-clean' style='text-align: center;'>
-                <p style='font-size: 1.1rem; margin-bottom: 5px;'>Total Skor Akhir Kamu:</p>
+                <p style='font-size: 1.1rem; margin-bottom: 5px; color: #ffffff;'>Total Skor Akhir Kamu:</p>
                 <h1 style='color: #38bdf8; font-size: 3rem; margin-top: 0;'>{st.session_state.score}</h1>
-                <p style='color: #10b981; font-size: 0.85rem; margin-top: 10px;'>✓ Skor berhasil disimpan!</p>
+                <p style='color: #34d399; font-size: 0.85rem; margin-top: 10px;'>✓ Skor berhasil disimpan ke Database MySQL!</p>
             </div>
         """, unsafe_allow_html=True)
         
@@ -262,8 +266,8 @@ elif st.session_state.page == "game":
     
     st.markdown("<div class='card-clean'>", unsafe_allow_html=True)
     st.markdown(f"<div class='char-icon'>{q['emoji']}</div>", unsafe_allow_html=True)
-    st.markdown(f"<h4 style='text-align: center; color: #e2e8f0; margin-bottom: 15px;'>Tantangan {q['monster']}</h4>", unsafe_allow_html=True)
-    st.markdown(f"<p style='text-align: center; font-size: 1.15rem; margin-bottom: 25px;'><b>Soal:</b> {q['q']}</p>", unsafe_allow_html=True)
+    st.markdown(f"<h4 style='text-align: center; color: #ffffff; margin-bottom: 15px;'>Tantangan {q['monster']}</h4>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align: center; font-size: 1.15rem; margin-bottom: 25px; color: #ffffff;'><b>Soal:</b> {q['q']}</p>", unsafe_allow_html=True)
 
     if st.session_state.mode == "math":
         ans = st.number_input("Masukkan jawaban angka:", step=1, format="%d", key="m_ans")
