@@ -1,5 +1,6 @@
 import streamlit as st
 import random
+import mysql.connector
 
 st.set_page_config(
     page_title="Smart Learning Hub",
@@ -7,7 +8,20 @@ st.set_page_config(
     layout="centered"
 )
 
-# STYLING CSS: Background Bergerak Jelas & Kontras Nyaman (Desain Tetap)
+# KONEKSI KE DATABASE MYSQL (XAMPP Lokal)
+def get_db_connection():
+    try:
+        connection = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="",          # Kosongkan jika pakai XAMPP default
+            database="db_smart_learning"
+        )
+        return connection
+    except Exception as e:
+        return None
+
+# STYLING CSS: Background Bergerak Jelas & Kontras Nyaman
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
@@ -117,8 +131,9 @@ if "used_questions" not in st.session_state: st.session_state.used_questions = [
 if "current_q" not in st.session_state: st.session_state.current_q = None
 if "game_over" not in st.session_state: st.session_state.game_over = False
 if "wrong_msg" not in st.session_state: st.session_state.wrong_msg = ""
+if "saved_to_db" not in st.session_state: st.session_state.saved_to_db = False
 
-# Bank Soal Diperluas (Dijamin Tidak Berulang Sampai Habis)
+# Bank Soal Unlimited
 MATH_BANK = [
     {"id": m, "q": q, "ans": a, "monster": name, "emoji": em} for m, (q, a, name, em) in enumerate([
         ("Berapakah hasil dari 12 x 5 - 15 ?", 45, "Penjaga Angka", "🔢"),
@@ -147,23 +162,32 @@ ENGLISH_BANK = [
 
 def get_new_question(mode):
     bank = MATH_BANK if mode == "math" else ENGLISH_BANK
-    
-    # Ambil ID soal yang BELUM pernah muncul di sesi ini
     available = [q for q in bank if q["id"] not in st.session_state.used_questions]
-    
-    # Jika semua soal di bank sudah habis, kosongkan riwayat lalu isi ulang (Unlimited loop)
     if not available:
         st.session_state.used_questions = []
         available = bank
-        
     chosen = random.choice(available)
     st.session_state.used_questions.append(chosen["id"])
     return chosen
 
+# Fungsi Simpan Skor ke MySQL
+def save_score_to_mysql():
+    if not st.session_state.saved_to_db:
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+            query = "INSERT INTO highscores (username, mode, score) VALUES (%s, %s, %s)"
+            values = (st.session_state.username, st.session_state.mode, st.session_state.score)
+            cursor.execute(query, values)
+            conn.commit()
+            cursor.close()
+            conn.close()
+            st.session_state.saved_to_db = True
+
 # Menu Utama
 if st.session_state.page == "menu":
     st.markdown("<h1 class='game-title'>Smart Learning Hub</h1>", unsafe_allow_html=True)
-    st.markdown("<div class='game-subtitle'>Interactive Learning Platform</div>", unsafe_allow_html=True)
+    st.markdown("<div class='game-subtitle'>Interactive Learning Platform + Database</div>", unsafe_allow_html=True)
     
     st.markdown("<div class='card-clean'>", unsafe_allow_html=True)
     st.subheader("Identitas Pengguna")
@@ -178,6 +202,7 @@ if st.session_state.page == "menu":
                 st.session_state.mode = "math"
                 st.session_state.score = 0
                 st.session_state.game_over = False
+                st.session_state.saved_to_db = False
                 st.session_state.used_questions = []
                 st.session_state.current_q = get_new_question("math")
                 st.session_state.page = "game"
@@ -187,6 +212,7 @@ if st.session_state.page == "menu":
                 st.session_state.mode = "english"
                 st.session_state.score = 0
                 st.session_state.game_over = False
+                st.session_state.saved_to_db = False
                 st.session_state.used_questions = []
                 st.session_state.current_q = get_new_question("english")
                 st.session_state.page = "game"
@@ -197,12 +223,16 @@ if st.session_state.page == "menu":
 # Gameplay Arena
 elif st.session_state.page == "game":
     if st.session_state.game_over:
+        # Panggil fungsi simpan ke database otomatis saat game over
+        save_score_to_mysql()
+
         st.markdown("<h2 style='text-align: center; color: #ef4444;'>Permainan Berakhir</h2>", unsafe_allow_html=True)
         st.markdown(f"<p style='text-align: center; color: #cbd5e1;'>{st.session_state.wrong_msg}</p>", unsafe_allow_html=True)
         st.markdown(f"""
             <div class='card-clean' style='text-align: center;'>
                 <p style='font-size: 1.1rem; margin-bottom: 5px;'>Total Skor Akhir Kamu:</p>
                 <h1 style='color: #38bdf8; font-size: 3rem; margin-top: 0;'>{st.session_state.score}</h1>
+                <p style='color: #10b981; font-size: 0.85rem; margin-top: 10px;'>✓ Skor berhasil disimpan ke Database MySQL!</p>
             </div>
         """, unsafe_allow_html=True)
         
@@ -211,6 +241,7 @@ elif st.session_state.page == "game":
             if st.button("Main Lagi"):
                 st.session_state.score = 0
                 st.session_state.game_over = False
+                st.session_state.saved_to_db = False
                 st.session_state.used_questions = []
                 st.session_state.current_q = get_new_question(st.session_state.mode)
                 st.rerun()
