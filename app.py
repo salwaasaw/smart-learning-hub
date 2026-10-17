@@ -21,7 +21,7 @@ def get_db_connection():
     except Exception as e:
         return None
 
-# STYLING CSS: Kotak Menyatu Rapih & Elegan
+# STYLING CSS: Tampilan Elegan & Animasi Monster
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
@@ -64,7 +64,6 @@ st.markdown("""
         font-weight: 700;
     }
 
-    /* KOTAK UTAMA YANG MENYATU DENGAN IKON KARTUN DI DALAMNYA */
     .card-unified {
         background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(12px);
@@ -85,16 +84,21 @@ st.markdown("""
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    @keyframes floatChar {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
+    @keyframes pulseMonster {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.08); }
     }
 
-    .char-icon {
-        text-align: center;
-        font-size: 4.5rem;
-        animation: floatChar 2.5s infinite ease-in-out;
-        margin-bottom: 10px;
+    .monster-img {
+        display: block;
+        margin: 0 auto 15px auto;
+        width: 130px;
+        height: 130px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #38bdf8;
+        box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+        animation: pulseMonster 2s infinite ease-in-out;
     }
 
     .status-panel {
@@ -150,30 +154,30 @@ if "game_over" not in st.session_state: st.session_state.game_over = False
 if "wrong_msg" not in st.session_state: st.session_state.wrong_msg = ""
 if "saved_to_db" not in st.session_state: st.session_state.saved_to_db = False
 
-# Bank Soal Unlimited
+# Bank Soal dengan Gambar Monster Keren (Menggunakan link gambar monster RPG/kartun berkualitas)
 MATH_BANK = [
-    {"id": m, "q": q, "ans": a, "monster": name, "emoji": em} for m, (q, a, name, em) in enumerate([
-        ("Berapakah hasil dari 12 x 5 - 15 ?", 45, "Penjaga Angka", "🔢"),
-        ("Berapakah hasil dari 8 x 8 + 20 - 4 ?", 80, "Penjaga Gerbang", "🛡️"),
-        ("Berapakah hasil dari (50 / 2) + (5 x 4) ?", 45, "Kalkulator Kuno", "⚙️"),
-        ("Berapakah hasil dari 100 - 25 x 2 ?", 50, "Penjaga Waktu", "⏳"),
-        ("Berapakah hasil dari 15 + 15 x 3 ?", 60, "Penjaga Logika", "🧭"),
-        ("Berapakah hasil dari 9 x 9 - 31 ?", 50, "Penjaga Angkasa", "🌠"),
-        ("Berapakah hasil dari 145 - 25 x 4 ?", 45, "Penjaga Misteri", "🗝️"),
-        ("Berapakah hasil dari 24 / 3 + 12 ?", 20, "Penjaga Kuil", "🏛️")
+    {"id": m, "q": q, "ans": a, "monster": name, "img": img} for m, (q, a, name, img) in enumerate([
+        ("Berapakah hasil dari 12 x 5 - 15 ?", 45, "Goblin Frost", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300&auto=format&fit=crop&q=80"),
+        ("Berapakah hasil dari 8 x 8 + 20 - 4 ?", 80, "Dragon Flame", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=80"),
+        ("Berapakah hasil dari (50 / 2) + (5 x 4) ?", 45, "Wizard Shadow", "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=300&auto=format&fit=crop&q=80"),
+        ("Berapakah hasil dari 100 - 25 x 2 ?", 50, "Cyborg Mech", "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=300&auto=format&fit=crop&q=80"),
+        ("Berapakah hasil dari 15 + 15 x 3 ?", 60, "Forest Spirit", "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=300&auto=format&fit=crop&q=80"),
+        ("Berapakah hasil dari 9 x 9 - 31 ?", 50, "Cosmic Phantom", "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=300&auto=format&fit=crop&q=80"),
+        ("Berapakah hasil dari 145 - 25 x 4 ?", 45, "Ancient Golem", "https://images.unsplash.com/photo-1618172193763-c511deb635ca?w=300&auto=format&fit=crop&q=80"),
+        ("Berapakah hasil dari 24 / 3 + 12 ?", 20, "Temple Guardian", "https://images.unsplash.com/photo-1633167606207-d840b5070fc2?w=300&auto=format&fit=crop&q=80")
     ])
 ]
 
 ENGLISH_BANK = [
-    {"id": e, "q": q, "options": opt, "ans": a, "monster": name, "emoji": em} for e, (q, opt, a, name, em) in enumerate([
-        ('Lengkapi kalimat: "She _______ to the library yesterday."', ["--- Pilih ---", "go", "went", "gone", "going"], "went", "Penjaga Kata", "📖"),
-        ('Apa sinonim dari kata "Brave"?', ["--- Pilih ---", "Coward", "Courageous", "Lazy", "Sad"], "Courageous", "Pemberantas Huruf", "✍️"),
-        ('Apa bentuk V2 (Past Tense) dari "Eat"?', ["--- Pilih ---", "Eaten", "Ate", "Eating", "Eats"], "Ate", "Arsiparis Bahasa", "📜"),
-        ('Lengkapi kalimat: "They _______ football last Sunday."', ["--- Pilih ---", "play", "playing", "played", "plays"], "played", "Pengawal Kalimat", "🛡️"),
-        ('Apa arti dari kata "Smart"?', ["--- Pilih ---", "Bodoh", "Cerdas", "Malas", "Lambat"], "Cerdas", "Master Kosakata", "💡"),
-        ('Lengkapi kalimat: "He has _______ finished his homework."', ["--- Pilih ---", "already", "yet", "still", "ever"], "already", "Penjaga Waktu", "⏳"),
-        ('Apa bentuk V3 (Past Participle) dari "Go"?', ["--- Pilih ---", "Went", "Gone", "Going", "Goes"], "Gone", "Ksatria Grammar", "⚔️"),
-        ('Lengkapi kalimat: "We _______ a movie last night."', ["--- Pilih ---", "watch", "watched", "watching", "watches"], "watched", "Penjaga Layar", "📺")
+    {"id": e, "q": q, "options": opt, "ans": a, "monster": name, "img": img} for e, (q, opt, a, name, img) in enumerate([
+        ('Lengkapi kalimat: "She _______ to the library yesterday."', ["--- Pilih ---", "go", "went", "gone", "going"], "went", "Ghost Writer", "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&auto=format&fit=crop&q=80"),
+        ('Apa sinonim dari kata "Brave"?', ["--- Pilih ---", "Coward", "Courageous", "Lazy", "Sad"], "Courageous", "Knight Honor", "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&auto=format&fit=crop&q=80"),
+        ('Apa bentuk V2 (Past Tense) dari "Eat"?', ["--- Pilih ---", "Eaten", "Ate", "Eating", "Eats"], "Ate", "Tense Dragon", "https://images.unsplash.com/photo-1563089145-599997674d42?w=300&auto=format&fit=crop&q=80"),
+        ('Lengkapi kalimat: "They _______ football last Sunday."', ["--- Pilih ---", "play", "playing", "played", "plays"], "played", "Sports Panther", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=80"),
+        ('Apa arti dari kata "Smart"?', ["--- Pilih ---", "Bodoh", "Cerdas", "Malas", "Lambat"], "Cerdas", "Wise Owl", "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=300&auto=format&fit=crop&q=80"),
+        ('Lengkapi kalimat: "He has _______ finished his homework."', ["--- Pilih ---", "already", "yet", "still", "ever"], "already", "Time Warden", "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=300&auto=format&fit=crop&q=80"),
+        ('Apa bentuk V3 (Past Participle) dari "Go"?', ["--- Pilih ---", "Went", "Gone", "Going", "Goes"], "Gone", "Grammar Knight", "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=300&auto=format&fit=crop&q=80"),
+        ('Lengkapi kalimat: "We _______ a movie last night."', ["--- Pilih ---", "watch", "watched", "watching", "watches"], "watched", "Cinema Phantom", "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=300&auto=format&fit=crop&q=80")
     ])
 ]
 
@@ -200,7 +204,7 @@ def save_score_to_mysql():
             conn.close()
             st.session_state.saved_to_db = True
 
-# ==================== HALAMAN 1: LOGIN / INPUT NAMA ====================
+# ==================== HALAMAN 1: LOGIN ====================
 if st.session_state.page == "login":
     st.markdown("<h1 class='game-title'>Smart Learning Hub</h1>", unsafe_allow_html=True)
     st.markdown("<div class='game-subtitle'>Interactive Learning Platform</div>", unsafe_allow_html=True)
@@ -213,7 +217,6 @@ if st.session_state.page == "login":
         </div>
     """, unsafe_allow_html=True)
     
-    # Input Streamlit diletakkan rapi di bawah card
     st.session_state.username = st.text_input("Masukkan Nama:", value=st.session_state.username, placeholder="Contoh: Salwa")
     
     if st.button("Masuk ke Arena 🚀"):
@@ -232,7 +235,7 @@ elif st.session_state.page == "welcome":
         <div class='card-unified' style='text-align: center;'>
             <div class='cartoon-row'>🌟 🦉 🎮 ✨ 🧭</div>
             <h2 style='color: #38bdf8; margin-bottom: 5px;'>Halo, {st.session_state.username}! 👋</h2>
-            <p style='font-size: 1rem; color: #cbd5e1;'>Siap untuk menguji kemampuanmu hari ini? Pilih tantangan yang ingin kamu taklukkan:</p>
+            <p style='font-size: 1rem; color: #cbd5e1;'>Siap menguji kemampuanmu dengan batas waktu menjawab? Pilih tantangan di bawah:</p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -264,7 +267,7 @@ elif st.session_state.page == "welcome":
         st.session_state.page = "login"
         st.rerun()
 
-# ==================== HALAMAN 3: GAMEPLAY ARENA ====================
+# ==================== HALAMAN 3: GAMEPLAY ARENA DENGAN TIMER ====================
 elif st.session_state.page == "game":
     if st.session_state.game_over:
         save_score_to_mysql()
@@ -301,14 +304,16 @@ elif st.session_state.page == "game":
     st.markdown(f"""
         <div class='status-panel'>
             <span>User: <b>{st.session_state.username}</b></span>
+            <span>⏱️ Waktu: <b>30 Detik</b></span>
             <span>Skor: <b style='color: #38bdf8;'>{st.session_state.score}</b></span>
         </div>
     """, unsafe_allow_html=True)
     
+    # Menampilkan Gambar Monster Alih-alih Emoji Biasa
     st.markdown(f"""
         <div class='card-unified'>
             <div class='cartoon-row'>🎯 ⚔️ 🧩 🔮 🚀</div>
-            <div class='char-icon'>{q['emoji']}</div>
+            <img src="{q['img']}" class="monster-img" alt="Monster">
             <h4 style='text-align: center; color: #ffffff; margin-bottom: 15px;'>Tantangan {q['monster']}</h4>
             <p style='text-align: center; font-size: 1.15rem; margin-bottom: 25px; color: #ffffff;'><b>Soal:</b> {q['q']}</p>
         </div>
