@@ -21,7 +21,7 @@ def get_db_connection():
     except Exception as e:
         return None
 
-# STYLING CSS: Gradasi Elegant & Soft (Kembali ke versi awal yang nyaman di mata)
+# STYLING CSS: Kotak Menyatu Rapih & Elegan
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
@@ -59,33 +59,30 @@ st.markdown("""
         color: #38bdf8 !important;
         font-size: 0.85rem;
         letter-spacing: 1.5px;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
         text-transform: uppercase;
         font-weight: 700;
     }
 
-    .cartoon-banner {
-        text-align: center;
-        font-size: 2.2rem;
-        letter-spacing: 12px;
-        margin-bottom: -10px;
-        padding: 8px;
-        background: rgba(15, 23, 42, 0.75);
-        backdrop-filter: blur(10px);
-        border-radius: 16px 16px 0 0;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-bottom: none;
-    }
-
-    .card-clean {
+    /* KOTAK UTAMA YANG MENYATU DENGAN IKON KARTUN DI DALAMNYA */
+    .card-unified {
         background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 18px;
-        padding: 28px;
+        padding: 25px 30px;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         margin-bottom: 20px;
+    }
+
+    .cartoon-row {
+        text-align: center;
+        font-size: 2rem;
+        letter-spacing: 10px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     @keyframes floatChar {
@@ -208,40 +205,39 @@ if st.session_state.page == "login":
     st.markdown("<h1 class='game-title'>Smart Learning Hub</h1>", unsafe_allow_html=True)
     st.markdown("<div class='game-subtitle'>Interactive Learning Platform</div>", unsafe_allow_html=True)
     
-    st.markdown("<div class='cartoon-banner'>🚀 🦊 🦖 🦉 🧙‍♂️ 🌟 🎮</div>", unsafe_allow_html=True)
+    st.markdown("""
+        <div class='card-unified'>
+            <div class='cartoon-row'>🚀 🦊 🦖 🦉 🧙‍♂️ 🌟 🎮</div>
+            <h3 style='margin-bottom: 5px; color: #ffffff;'>👋 Selamat Datang!</h3>
+            <p style='color: #cbd5e1; margin-bottom: 20px;'>Silakan masukkan nama kamu sebelum memulai petualangan belajar.</p>
+        </div>
+    """, unsafe_allow_html=True)
     
-    st.markdown("<div class='card-clean' style='border-radius: 0 0 18px 18px; margin-top: 0;'>", unsafe_allow_html=True)
-    st.subheader("👋 Selamat Datang!")
-    st.write("Silakan masukkan nama kamu sebelum memulai petualangan belajar.")
-    
-    input_name = st.text_input("Masukkan Nama:", value=st.session_state.username, placeholder="Contoh: Salwa")
+    # Input Streamlit diletakkan rapi di bawah card
+    st.session_state.username = st.text_input("Masukkan Nama:", value=st.session_state.username, placeholder="Contoh: Salwa")
     
     if st.button("Masuk ke Arena 🚀"):
-        if input_name.strip():
-            st.session_state.username = input_name.strip()
+        if st.session_state.username.strip():
             st.session_state.page = "welcome"
             st.rerun()
         else:
             st.warning("Mohon isi nama kamu terlebih dahulu!")
-            
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # ==================== HALAMAN 2: DASHBOARD SAMBUTAN ====================
 elif st.session_state.page == "welcome":
     st.markdown("<h1 class='game-title'>Smart Learning Hub</h1>", unsafe_allow_html=True)
     st.markdown("<div class='game-subtitle'>Interactive Learning Platform</div>", unsafe_allow_html=True)
     
-    st.markdown("<div class='cartoon-banner'>🌟 🦉 🎮 ✨ 🧭</div>", unsafe_allow_html=True)
-    
-    st.markdown("<div class='card-clean' style='border-radius: 0 0 18px 18px; margin-top: 0; text-align: center;'>", unsafe_allow_html=True)
-    st.markdown(f"<h2 style='color: #38bdf8; margin-bottom: 5px;'>Halo, {st.session_state.username}! 👋</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size: 1rem; color: #cbd5e1;'>Siap untuk menguji kemampuanmu hari ini? Pilih tantangan yang ingin kamu taklukkan:</p>", unsafe_allow_html=True)
-    st.markdown("---")
+    st.markdown(f"""
+        <div class='card-unified' style='text-align: center;'>
+            <div class='cartoon-row'>🌟 🦉 🎮 ✨ 🧭</div>
+            <h2 style='color: #38bdf8; margin-bottom: 5px;'>Halo, {st.session_state.username}! 👋</h2>
+            <p style='font-size: 1rem; color: #cbd5e1;'>Siap untuk menguji kemampuanmu hari ini? Pilih tantangan yang ingin kamu taklukkan:</p>
+        </div>
+    """, unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("### 🔢 Matematika")
-        st.caption("Uji kemampuan hitung cepat & logika angka.")
         if st.button("Mulai Matematika 🧮"):
             st.session_state.mode = "math"
             st.session_state.score = 0
@@ -253,8 +249,6 @@ elif st.session_state.page == "welcome":
             st.rerun()
 
     with col2:
-        st.markdown("### 🔤 Bahasa Inggris")
-        st.caption("Asah kemampuan tata bahasa & kosakata.")
         if st.button("Mulai B. Inggris 📚"):
             st.session_state.mode = "english"
             st.session_state.score = 0
@@ -270,8 +264,6 @@ elif st.session_state.page == "welcome":
         st.session_state.page = "login"
         st.rerun()
 
-    st.markdown("</div>", unsafe_allow_html=True)
-
 # ==================== HALAMAN 3: GAMEPLAY ARENA ====================
 elif st.session_state.page == "game":
     if st.session_state.game_over:
@@ -280,9 +272,9 @@ elif st.session_state.page == "game":
         st.markdown("<h2 style='text-align: center; color: #f87171;'>Permainan Berakhir</h2>", unsafe_allow_html=True)
         st.markdown(f"<p style='text-align: center; color: #e2e8f0;'>{st.session_state.wrong_msg}</p>", unsafe_allow_html=True)
         
-        st.markdown("<div class='cartoon-banner'>🏆 💀 ✨ 📉 🎮</div>", unsafe_allow_html=True)
         st.markdown(f"""
-            <div class='card-clean' style='text-align: center; border-radius: 0 0 18px 18px; margin-top: 0;'>
+            <div class='card-unified' style='text-align: center;'>
+                <div class='cartoon-row'>🏆 💀 ✨ 📉 🎮</div>
                 <p style='font-size: 1.1rem; margin-bottom: 5px; color: #ffffff;'>Total Skor Akhir Kamu:</p>
                 <h1 style='color: #38bdf8; font-size: 3rem; margin-top: 0;'>{st.session_state.score}</h1>
                 <p style='color: #34d399; font-size: 0.85rem; margin-top: 10px;'>✓ Riwayat skor berhasil dicatat!</p>
@@ -313,11 +305,14 @@ elif st.session_state.page == "game":
         </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("<div class='cartoon-banner'>🎯 ⚔️ 🧩 🔮 🚀</div>", unsafe_allow_html=True)
-    st.markdown("<div class='card-clean' style='border-radius: 0 0 18px 18px; margin-top: 0;'>", unsafe_allow_html=True)
-    st.markdown(f"<div class='char-icon'>{q['emoji']}</div>", unsafe_allow_html=True)
-    st.markdown(f"<h4 style='text-align: center; color: #ffffff; margin-bottom: 15px;'>Tantangan {q['monster']}</h4>", unsafe_allow_html=True)
-    st.markdown(f"<p style='text-align: center; font-size: 1.15rem; margin-bottom: 25px; color: #ffffff;'><b>Soal:</b> {q['q']}</p>", unsafe_allow_html=True)
+    st.markdown(f"""
+        <div class='card-unified'>
+            <div class='cartoon-row'>🎯 ⚔️ 🧩 🔮 🚀</div>
+            <div class='char-icon'>{q['emoji']}</div>
+            <h4 style='text-align: center; color: #ffffff; margin-bottom: 15px;'>Tantangan {q['monster']}</h4>
+            <p style='text-align: center; font-size: 1.15rem; margin-bottom: 25px; color: #ffffff;'><b>Soal:</b> {q['q']}</p>
+        </div>
+    """, unsafe_allow_html=True)
 
     if st.session_state.mode == "math":
         ans = st.number_input("Masukkan jawaban angka:", step=1, format="%d", key="m_ans")
@@ -345,8 +340,7 @@ elif st.session_state.page == "game":
                 st.session_state.wrong_msg = f"Jawaban kamu kurang tepat. Jawaban yang benar adalah **{q['ans']}**."
                 st.rerun()
 
-    st.markdown("</div>", unsafe_allow_html=True)
-    
+    st.markdown("<br>", unsafe_allow_html=True)
     if st.button("Keluar ke Menu Dashboard"):
         st.session_state.page = "welcome"
         st.rerun()
