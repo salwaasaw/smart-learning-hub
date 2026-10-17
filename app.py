@@ -21,7 +21,7 @@ def get_db_connection():
     except Exception as e:
         return None
 
-# STYLING CSS: Background Gradasi Jelas & Kotak Input Berisi Karakter Kartun
+# STYLING CSS: Gradasi Elegant & Soft (Kembali ke versi awal yang nyaman di mata)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
@@ -33,9 +33,9 @@ st.markdown("""
     }
 
     .stApp {
-        background: linear-gradient(-45deg, #3b82f6, #8b5cf6, #ec4899, #10b981);
+        background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #0f172a);
         background-size: 300% 300%;
-        animation: movingGradient 6s ease infinite;
+        animation: movingGradient 12s ease infinite;
         font-family: 'Plus Jakarta Sans', sans-serif;
         color: #ffffff !important;
     }
@@ -51,31 +51,29 @@ st.markdown("""
         color: #ffffff !important;
         letter-spacing: -0.5px;
         margin-bottom: 0px;
-        text-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        text-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
 
     .game-subtitle {
         text-align: center;
-        color: #ffffff !important;
+        color: #38bdf8 !important;
         font-size: 0.85rem;
         letter-spacing: 1.5px;
         margin-bottom: 15px;
         text-transform: uppercase;
         font-weight: 700;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
 
-    /* BANNER KARAKTER KARTUN DI ATAS KOTAK INPUT */
     .cartoon-banner {
         text-align: center;
         font-size: 2.2rem;
         letter-spacing: 12px;
         margin-bottom: -10px;
-        padding: 5px;
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(8px);
-        border-radius: 14px 14px 0 0;
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 8px;
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(10px);
+        border-radius: 16px 16px 0 0;
+        border: 1px solid rgba(255, 255, 255, 0.15);
         border-bottom: none;
     }
 
@@ -83,10 +81,10 @@ st.markdown("""
         background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 18px;
         padding: 28px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         margin-bottom: 20px;
     }
 
@@ -108,7 +106,7 @@ st.markdown("""
         background: rgba(15, 23, 42, 0.85);
         padding: 12px 20px;
         border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         font-size: 0.9rem;
         font-weight: 700;
         margin-bottom: 20px;
@@ -124,28 +122,28 @@ st.markdown("""
         font-weight: 700;
         font-size: 0.95rem;
         padding: 12px;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
         transition: all 0.2s ease-in-out;
     }
 
     .stButton>button:hover {
         background: #1d4ed8;
         transform: translateY(-1px);
-        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5);
+        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.6);
     }
 
     .stTextInput input, .stNumberInput input {
-        background-color: rgba(15, 23, 42, 0.9) !important;
+        background-color: rgba(15, 23, 42, 0.95) !important;
         color: #ffffff !important;
         font-weight: 600;
-        border: 1px solid #60a5fa !important;
+        border: 1px solid #38bdf8 !important;
         border-radius: 8px !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Session State
-if "page" not in st.session_state: st.session_state.page = "menu"
+# Session State Initialization
+if "page" not in st.session_state: st.session_state.page = "login"
 if "username" not in st.session_state: st.session_state.username = ""
 if "score" not in st.session_state: st.session_state.score = 0
 if "mode" not in st.session_state: st.session_state.mode = ""
@@ -205,46 +203,76 @@ def save_score_to_mysql():
             conn.close()
             st.session_state.saved_to_db = True
 
-# Menu Utama
-if st.session_state.page == "menu":
+# ==================== HALAMAN 1: LOGIN / INPUT NAMA ====================
+if st.session_state.page == "login":
     st.markdown("<h1 class='game-title'>Smart Learning Hub</h1>", unsafe_allow_html=True)
     st.markdown("<div class='game-subtitle'>Interactive Learning Platform</div>", unsafe_allow_html=True)
     
-    # Kumpulan Karakter Kartun di Atas Kotak Input
     st.markdown("<div class='cartoon-banner'>🚀 🦊 🦖 🦉 🧙‍♂️ 🌟 🎮</div>", unsafe_allow_html=True)
     
     st.markdown("<div class='card-clean' style='border-radius: 0 0 18px 18px; margin-top: 0;'>", unsafe_allow_html=True)
-    st.subheader("Identitas Pengguna")
-    st.session_state.username = st.text_input("Masukkan Nama:", value=st.session_state.username, placeholder="Ketik nama kamu...")
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.subheader("👋 Selamat Datang!")
+    st.write("Silakan masukkan nama kamu sebelum memulai petualangan belajar.")
     
-    if st.session_state.username:
-        st.success(f"Selamat datang, **{st.session_state.username}**. Pilih mode latihan:")
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Mode Matematika"):
-                st.session_state.mode = "math"
-                st.session_state.score = 0
-                st.session_state.game_over = False
-                st.session_state.saved_to_db = False
-                st.session_state.used_questions = []
-                st.session_state.current_q = get_new_question("math")
-                st.session_state.page = "game"
-                st.rerun()
-        with col2:
-            if st.button("Mode Bahasa Inggris"):
-                st.session_state.mode = "english"
-                st.session_state.score = 0
-                st.session_state.game_over = False
-                st.session_state.saved_to_db = False
-                st.session_state.used_questions = []
-                st.session_state.current_q = get_new_question("english")
-                st.session_state.page = "game"
-                st.rerun()
-    else:
-        st.warning("Silakan masukkan nama terlebih dahulu.")
+    input_name = st.text_input("Masukkan Nama:", value=st.session_state.username, placeholder="Contoh: Salwa")
+    
+    if st.button("Masuk ke Arena 🚀"):
+        if input_name.strip():
+            st.session_state.username = input_name.strip()
+            st.session_state.page = "welcome"
+            st.rerun()
+        else:
+            st.warning("Mohon isi nama kamu terlebih dahulu!")
+            
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# Gameplay Arena
+# ==================== HALAMAN 2: DASHBOARD SAMBUTAN ====================
+elif st.session_state.page == "welcome":
+    st.markdown("<h1 class='game-title'>Smart Learning Hub</h1>", unsafe_allow_html=True)
+    st.markdown("<div class='game-subtitle'>Interactive Learning Platform</div>", unsafe_allow_html=True)
+    
+    st.markdown("<div class='cartoon-banner'>🌟 🦉 🎮 ✨ 🧭</div>", unsafe_allow_html=True)
+    
+    st.markdown("<div class='card-clean' style='border-radius: 0 0 18px 18px; margin-top: 0; text-align: center;'>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='color: #38bdf8; margin-bottom: 5px;'>Halo, {st.session_state.username}! 👋</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 1rem; color: #cbd5e1;'>Siap untuk menguji kemampuanmu hari ini? Pilih tantangan yang ingin kamu taklukkan:</p>", unsafe_allow_html=True)
+    st.markdown("---")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("### 🔢 Matematika")
+        st.caption("Uji kemampuan hitung cepat & logika angka.")
+        if st.button("Mulai Matematika 🧮"):
+            st.session_state.mode = "math"
+            st.session_state.score = 0
+            st.session_state.game_over = False
+            st.session_state.saved_to_db = False
+            st.session_state.used_questions = []
+            st.session_state.current_q = get_new_question("math")
+            st.session_state.page = "game"
+            st.rerun()
+
+    with col2:
+        st.markdown("### 🔤 Bahasa Inggris")
+        st.caption("Asah kemampuan tata bahasa & kosakata.")
+        if st.button("Mulai B. Inggris 📚"):
+            st.session_state.mode = "english"
+            st.session_state.score = 0
+            st.session_state.game_over = False
+            st.session_state.saved_to_db = False
+            st.session_state.used_questions = []
+            st.session_state.current_q = get_new_question("english")
+            st.session_state.page = "game"
+            st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("⬅️ Ganti Nama User"):
+        st.session_state.page = "login"
+        st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# ==================== HALAMAN 3: GAMEPLAY ARENA ====================
 elif st.session_state.page == "game":
     if st.session_state.game_over:
         save_score_to_mysql()
@@ -272,7 +300,7 @@ elif st.session_state.page == "game":
                 st.rerun()
         with col_b:
             if st.button("Kembali ke Menu"):
-                st.session_state.page = "menu"
+                st.session_state.page = "welcome"
                 st.rerun()
         st.stop()
 
@@ -319,6 +347,6 @@ elif st.session_state.page == "game":
 
     st.markdown("</div>", unsafe_allow_html=True)
     
-    if st.button("Keluar ke Menu"):
-        st.session_state.page = "menu"
+    if st.button("Keluar ke Menu Dashboard"):
+        st.session_state.page = "welcome"
         st.rerun()
