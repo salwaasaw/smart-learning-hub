@@ -7,12 +7,11 @@ st.set_page_config(
     layout="centered"
 )
 
-# STYLING CSS: Warna Cerah, Background Bergerak, Efek 3D & Animasi Monster
+# STYLING CSS: Background Bergerak, Efek 3D, Animasi Monster & Efek Getar Serangan
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Poppins:wght@400;600;800&display=swap');
 
-    /* Background Gradient Bergerak Halus */
     @keyframes gradientShift {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
@@ -46,7 +45,6 @@ st.markdown("""
         margin-bottom: 25px;
     }
 
-    /* Efek 3D Card & Glassmorphism */
     .rpg-card-3d {
         background: rgba(255, 255, 255, 0.15);
         backdrop-filter: blur(16px);
@@ -58,18 +56,32 @@ st.markdown("""
         margin-bottom: 20px;
     }
 
-    /* Animasi Monster Bergerak / Menyerang */
+    /* Animasi Monster Memantul */
     @keyframes bounceMonster {
         0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-12px) scale(1.05); }
+        50% { transform: translateY(-15px) scale(1.08); }
+    }
+
+    /* Animasi Layar Bergetar Saat Diserang Monster */
+    @keyframes shakeScreen {
+        0% { transform: translate(0, 0); }
+        20% { transform: translate(-10px, 5px); }
+        40% { transform: translate(10px, -5px); }
+        60% { transform: translate(-5px, -5px); }
+        80% { transform: translate(5px, 5px); }
+        100% { transform: translate(0, 0); }
     }
 
     .monster-3d {
         text-align: center;
         font-size: 6rem;
-        animation: bounceMonster 1.8s infinite ease-in-out;
+        animation: bounceMonster 1.5s infinite ease-in-out;
         text-shadow: 0 10px 20px rgba(0,0,0,0.3);
         margin-bottom: 10px;
+    }
+
+    .monster-attack-effect {
+        animation: shakeScreen 0.4s ease-in-out;
     }
 
     .status-bar {
@@ -120,12 +132,13 @@ if "score" not in st.session_state: st.session_state.score = 0
 if "hp" not in st.session_state: st.session_state.hp = 100
 if "mode" not in st.session_state: st.session_state.mode = ""
 if "current_q" not in st.session_state: st.session_state.current_q = None
+if "attack_effect" not in st.session_state: st.session_state.attack_effect = False
 
-# Bank Soal Lengkap
+# Bank Soal Bersih Tanpa Kode Aneh
 MATH_BANK = [
-    {"q": "Berapakah hasil dari $12 \\times 5 - 15$ ?", "ans": 45, "monster": "Goblin Gesit", "emoji": "👺"},
-    {"q": "Berapakah hasil dari $8 \\times 8 + 20 - 4$ ?", "ans": 80, "monster": "Naga Api Purba", "emoji": "🐉"},
-    {"q": "Berapakah hasil dari $(50 \\div 2) + (5 \\times 4)$ ?", "ans": 45, "monster": "Penyihir Angka", "emoji": "🧙‍♂️"},
+    {"q": "Berapakah hasil dari 12 x 5 - 15 ?", "ans": 45, "monster": "Goblin Gesit", "emoji": "👺"},
+    {"q": "Berapakah hasil dari 8 x 8 + 20 - 4 ?", "ans": 80, "monster": "Naga Api Purba", "emoji": "🐉"},
+    {"q": "Berapakah hasil dari (50 / 2) + (5 x 4) ?", "ans": 45, "monster": "Penyihir Angka", "emoji": "🧙‍♂️"},
 ]
 ENGLISH_BANK = [
     {"q": 'Lengkapi kalimat: "She _______ to the library yesterday."', "options": ["--- Pilih ---", "go", "went", "gone", "going"], "ans": "went", "monster": "Hantu Grammar", "emoji": "👻"},
@@ -189,9 +202,10 @@ elif st.session_state.page == "game":
         </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("<div class='rpg-card-3d'>", unsafe_allow_html=True)
+    # Efek Kelas Getar jika Salah Jawab
+    card_class = "rpg-card-3d monster-attack-effect" if st.session_state.attack_effect else "rpg-card-3d"
+    st.markdown(f"<div class='{card_class}'>", unsafe_allow_html=True)
     
-    # Monster 3D dengan Animasi Bergerak & Efek Serangan
     st.markdown(f"<div class='monster-3d'>{q['emoji']}</div>", unsafe_allow_html=True)
     st.markdown(f"<h3 style='text-align: center; color: #fde047; font-family: Orbitron;'>⚔️ {q['monster']} Menyerang! ⚔️</h3>", unsafe_allow_html=True)
     st.markdown(f"<p style='text-align: center; font-size: 1.15rem; margin-bottom: 20px;'><b>Tantangan:</b> {q['q']}</p>", unsafe_allow_html=True)
@@ -202,6 +216,7 @@ elif st.session_state.page == "game":
         ans = st.number_input("Masukkan jawaban angka:", step=1, format="%d", key="m_ans")
         if st.button("⚡ LUNCURKAN SERANGAN BALIK!"):
             if ans == q["ans"]:
+                st.session_state.attack_effect = False
                 st.balloons()
                 st.success("🎉 TELAK! Monster terpental mundur! (+25 Skor)")
                 st.session_state.score += 25
@@ -209,12 +224,15 @@ elif st.session_state.page == "game":
                 st.rerun()
             else:
                 st.session_state.hp -= 34
-                st.error("💥 GAGAL! Monster menerjang dan melukaimu! (-34 HP)")
+                st.session_state.attack_effect = True
+                st.error("💥 GAGAL! Naga menerjang dan melukaimu dengan api! (-34 HP)")
+                st.rerun()
 
     elif st.session_state.mode == "english":
         ans = st.radio("Pilih jawaban yang tepat:", q["options"], key="e_ans")
         if st.button("⚡ UJI MANTRA / JAWAB!"):
             if ans == q["ans"]:
+                st.session_state.attack_effect = False
                 st.balloons()
                 st.success("✨ BERHASIL! Sihirmu melumpuhkan monster! (+25 Skor)")
                 st.session_state.score += 25
@@ -224,7 +242,9 @@ elif st.session_state.page == "game":
                 st.warning("⚠️ Pilih salah satu opsi jawaban dulu!")
             else:
                 st.session_state.hp -= 34
+                st.session_state.attack_effect = True
                 st.error("❌ SALAH! Monster membalas dengan cakar mautnya! (-34 HP)")
+                st.rerun()
 
     st.markdown("</div>", unsafe_allow_html=True)
     
