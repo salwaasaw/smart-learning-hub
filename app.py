@@ -21,7 +21,7 @@ def get_db_connection():
     except Exception as e:
         return None
 
-# STYLING CSS: Warna Teks Dijamin Putih & Jelas
+# STYLING CSS: Background Gradasi Jelas & Kotak Input Berisi Karakter Kartun
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
@@ -33,14 +33,13 @@ st.markdown("""
     }
 
     .stApp {
-        background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #0f2744);
+        background: linear-gradient(-45deg, #3b82f6, #8b5cf6, #ec4899, #10b981);
         background-size: 300% 300%;
-        animation: movingGradient 8s ease infinite;
+        animation: movingGradient 6s ease infinite;
         font-family: 'Plus Jakarta Sans', sans-serif;
         color: #ffffff !important;
     }
 
-    /* MEMBUAT SEMUA TEKS, LABEL, DAN PILIHAN MENJADI PUTIH TERANG */
     .stMarkdown, p, label, .stRadio label, .stTextInput label, .stNumberInput label, span {
         color: #ffffff !important;
     }
@@ -52,25 +51,42 @@ st.markdown("""
         color: #ffffff !important;
         letter-spacing: -0.5px;
         margin-bottom: 0px;
+        text-shadow: 0 3px 10px rgba(0,0,0,0.3);
     }
 
     .game-subtitle {
         text-align: center;
-        color: #e2e8f0 !important;
+        color: #ffffff !important;
         font-size: 0.85rem;
         letter-spacing: 1.5px;
-        margin-bottom: 25px;
+        margin-bottom: 15px;
         text-transform: uppercase;
+        font-weight: 700;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    /* BANNER KARAKTER KARTUN DI ATAS KOTAK INPUT */
+    .cartoon-banner {
+        text-align: center;
+        font-size: 2.2rem;
+        letter-spacing: 12px;
+        margin-bottom: -10px;
+        padding: 5px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(8px);
+        border-radius: 14px 14px 0 0;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-bottom: none;
     }
 
     .card-clean {
-        background: rgba(15, 23, 42, 0.65);
+        background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.25);
         border-radius: 18px;
         padding: 28px;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         margin-bottom: 20px;
     }
 
@@ -89,10 +105,10 @@ st.markdown("""
     .status-panel {
         display: flex;
         justify-content: space-between;
-        background: rgba(15, 23, 42, 0.75);
+        background: rgba(15, 23, 42, 0.85);
         padding: 12px 20px;
         border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
         font-size: 0.9rem;
         font-weight: 700;
         margin-bottom: 20px;
@@ -119,10 +135,10 @@ st.markdown("""
     }
 
     .stTextInput input, .stNumberInput input {
-        background-color: rgba(15, 23, 42, 0.85) !important;
+        background-color: rgba(15, 23, 42, 0.9) !important;
         color: #ffffff !important;
         font-weight: 600;
-        border: 1px solid #475569 !important;
+        border: 1px solid #60a5fa !important;
         border-radius: 8px !important;
     }
     </style>
@@ -192,9 +208,12 @@ def save_score_to_mysql():
 # Menu Utama
 if st.session_state.page == "menu":
     st.markdown("<h1 class='game-title'>Smart Learning Hub</h1>", unsafe_allow_html=True)
-    st.markdown("<div class='game-subtitle'>Interactive Learning Platform + Database</div>", unsafe_allow_html=True)
+    st.markdown("<div class='game-subtitle'>Interactive Learning Platform</div>", unsafe_allow_html=True)
     
-    st.markdown("<div class='card-clean'>", unsafe_allow_html=True)
+    # Kumpulan Karakter Kartun di Atas Kotak Input
+    st.markdown("<div class='cartoon-banner'>🚀 🦊 🦖 🦉 🧙‍♂️ 🌟 🎮</div>", unsafe_allow_html=True)
+    
+    st.markdown("<div class='card-clean' style='border-radius: 0 0 18px 18px; margin-top: 0;'>", unsafe_allow_html=True)
     st.subheader("Identitas Pengguna")
     st.session_state.username = st.text_input("Masukkan Nama:", value=st.session_state.username, placeholder="Ketik nama kamu...")
     st.markdown("</div>", unsafe_allow_html=True)
@@ -230,13 +249,15 @@ elif st.session_state.page == "game":
     if st.session_state.game_over:
         save_score_to_mysql()
 
-        st.markdown("<h2 style='text-align: center; color: #ef4444;'>Permainan Berakhir</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; color: #f87171;'>Permainan Berakhir</h2>", unsafe_allow_html=True)
         st.markdown(f"<p style='text-align: center; color: #e2e8f0;'>{st.session_state.wrong_msg}</p>", unsafe_allow_html=True)
+        
+        st.markdown("<div class='cartoon-banner'>🏆 💀 ✨ 📉 🎮</div>", unsafe_allow_html=True)
         st.markdown(f"""
-            <div class='card-clean' style='text-align: center;'>
+            <div class='card-clean' style='text-align: center; border-radius: 0 0 18px 18px; margin-top: 0;'>
                 <p style='font-size: 1.1rem; margin-bottom: 5px; color: #ffffff;'>Total Skor Akhir Kamu:</p>
                 <h1 style='color: #38bdf8; font-size: 3rem; margin-top: 0;'>{st.session_state.score}</h1>
-                <p style='color: #34d399; font-size: 0.85rem; margin-top: 10px;'>✓ Skor berhasil disimpan ke Database MySQL!</p>
+                <p style='color: #34d399; font-size: 0.85rem; margin-top: 10px;'>✓ Riwayat skor berhasil dicatat!</p>
             </div>
         """, unsafe_allow_html=True)
         
@@ -264,7 +285,8 @@ elif st.session_state.page == "game":
         </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("<div class='card-clean'>", unsafe_allow_html=True)
+    st.markdown("<div class='cartoon-banner'>🎯 ⚔️ 🧩 🔮 🚀</div>", unsafe_allow_html=True)
+    st.markdown("<div class='card-clean' style='border-radius: 0 0 18px 18px; margin-top: 0;'>", unsafe_allow_html=True)
     st.markdown(f"<div class='char-icon'>{q['emoji']}</div>", unsafe_allow_html=True)
     st.markdown(f"<h4 style='text-align: center; color: #ffffff; margin-bottom: 15px;'>Tantangan {q['monster']}</h4>", unsafe_allow_html=True)
     st.markdown(f"<p style='text-align: center; font-size: 1.15rem; margin-bottom: 25px; color: #ffffff;'><b>Soal:</b> {q['q']}</p>", unsafe_allow_html=True)
