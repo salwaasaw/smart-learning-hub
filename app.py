@@ -187,7 +187,7 @@ def save_score_to_mysql():
 # Menu Utama
 if st.session_state.page == "menu":
     st.markdown("<h1 class='game-title'>Smart Learning Hub</h1>", unsafe_allow_html=True)
-    st.markdown("<div class='game-subtitle'>Interactive Learning Platform + Database</div>", unsafe_allow_html=True)
+    st.markdown("<div class='game-subtitle'>Interactive Learning Platform</div>", unsafe_allow_html=True)
     
     st.markdown("<div class='card-clean'>", unsafe_allow_html=True)
     st.subheader("Identitas Pengguna")
@@ -232,7 +232,7 @@ elif st.session_state.page == "game":
             <div class='card-clean' style='text-align: center;'>
                 <p style='font-size: 1.1rem; margin-bottom: 5px;'>Total Skor Akhir Kamu:</p>
                 <h1 style='color: #38bdf8; font-size: 3rem; margin-top: 0;'>{st.session_state.score}</h1>
-                <p style='color: #10b981; font-size: 0.85rem; margin-top: 10px;'>✓ Skor berhasil disimpan ke Database MySQL!</p>
+                <p style='color: #10b981; font-size: 0.85rem; margin-top: 10px;'>✓ Skor berhasil disimpan!</p>
             </div>
         """, unsafe_allow_html=True)
         
