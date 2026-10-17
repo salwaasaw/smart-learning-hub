@@ -7,21 +7,22 @@ st.set_page_config(
     layout="centered"
 )
 
-# STYLING CSS: Tema Netral Elegan (Midnight Minimalist), Background Bergerak, Tanpa Norak
+# STYLING CSS: Background Bergerak Jelas & Kontras Nyaman
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
 
-    @keyframes subtleGradient {
+    /* Animasi Gradasi Dibuat Lebih Kontras & Terlihat Bergerak */
+    @keyframes movingGradient {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
     }
 
     .stApp {
-        background: linear-gradient(-45deg, #0f172a, #1e293b, #090d16, #111827);
-        background-size: 400% 400%;
-        animation: subtleGradient 15s ease infinite;
+        background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #0f2744);
+        background-size: 300% 300%;
+        animation: movingGradient 8s ease infinite;
         font-family: 'Plus Jakarta Sans', sans-serif;
         color: #f8fafc;
     }
@@ -37,21 +38,22 @@ st.markdown("""
 
     .game-subtitle {
         text-align: center;
-        color: #94a3b8;
+        color: #cbd5e1;
         font-size: 0.85rem;
         letter-spacing: 1.5px;
         margin-bottom: 25px;
         text-transform: uppercase;
     }
 
+    /* Kotak Kaca Modern Transparan agar Background Tetap Kelihatan Bergerak di Belakangnya */
     .card-clean {
-        background: rgba(30, 41, 59, 0.7);
+        background: rgba(15, 23, 42, 0.65);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        padding: 30px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 18px;
+        padding: 28px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
         margin-bottom: 20px;
     }
 
@@ -70,10 +72,10 @@ st.markdown("""
     .status-panel {
         display: flex;
         justify-content: space-between;
-        background: rgba(15, 23, 42, 0.8);
+        background: rgba(15, 23, 42, 0.75);
         padding: 12px 20px;
         border-radius: 12px;
-        border: 1px solid #334155;
+        border: 1px solid rgba(255, 255, 255, 0.15);
         font-size: 0.9rem;
         font-weight: 700;
         margin-bottom: 20px;
@@ -81,25 +83,25 @@ st.markdown("""
 
     .stButton>button {
         width: 100%;
-        background: #3b82f6;
+        background: #2563eb;
         color: white;
         border: none;
         border-radius: 10px;
         font-weight: 700;
         font-size: 0.95rem;
         padding: 12px;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
         transition: all 0.2s ease-in-out;
     }
 
     .stButton>button:hover {
-        background: #2563eb;
+        background: #1d4ed8;
         transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5);
     }
 
     .stTextInput input, .stNumberInput input {
-        background-color: rgba(15, 23, 42, 0.9) !important;
+        background-color: rgba(15, 23, 42, 0.85) !important;
         color: #ffffff !important;
         font-weight: 600;
         border: 1px solid #475569 !important;
@@ -185,10 +187,9 @@ if st.session_state.page == "menu":
 
 # Gameplay Arena
 elif st.session_state.page == "game":
-    # Jika Salah Jawab / Game Over
     if st.session_state.game_over:
         st.markdown("<h2 style='text-align: center; color: #ef4444;'>Permainan Berakhir</h2>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align: center; color: #94a3b8;'>{st.session_state.wrong_msg}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: center; color: #cbd5e1;'>{st.session_state.wrong_msg}</p>", unsafe_allow_html=True)
         st.markdown(f"""
             <div class='card-clean' style='text-align: center;'>
                 <p style='font-size: 1.1rem; margin-bottom: 5px;'>Total Skor Akhir Kamu:</p>
