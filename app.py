@@ -8,7 +8,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# Styling CSS Kustom (Estetik, Animasi Halus, Tidak Nabrak)
+# Styling CSS Kustom
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
@@ -98,25 +98,24 @@ if "mode" not in st.session_state: st.session_state.mode = ""
 if "current_question" not in st.session_state: st.session_state.current_question = None
 
 # ==========================================
-# BANK SOAL LENGKAP & ACAK (MATEMATIKA & INGGRIS)
+# BANK SOAL DENGAN GAMBAR STABIL (OPENSOURCE)
 # ==========================================
 MATH_BANK = [
-    {"q": "Berapakah hasil dari $12 \\times 5 - 15$ ?", "ans": 45, "monster": "Goblin Angka", "img": "https://media.giphy.com/media/3oKIPnAiaMCws8nOsE/giphy.gif"},
-    {"q": "Berapakah hasil dari $8 \\times 8 + 20 - 4$ ?", "ans": 80, "monster": "Naga Aljabar", "img": "https://media.giphy.com/media/l0HlRnAWXxn0MhOBK/giphy.gif"},
-    {"q": "Berapakah hasil dari $(50 \\div 2) + (5 \\times 4)$ ?", "ans": 45, "monster": "Penyihir Pecahan", "img": "https://media.giphy.com/media/3o7TKSjRrfIPjeiDiM/giphy.gif"},
-    {"q": "Berapakah hasil dari $145 - 25 \\times 4$ ?", "ans": 45, "monster": "Golem Logika", "img": "https://media.giphy.com/media/xT5LMBauZz1B8Y2iBy/giphy.gif"},
-    {"q": "Berapakah hasil dari $9 \\times 9 - 31$ ?", "ans": 50, "monster": "Ksatria Angka", "img": "https://media.giphy.com/media/3oKIPnAiaMCws8nOsE/giphy.gif"}
+    {"q": "Berapakah hasil dari $12 \\times 5 - 15$ ?", "ans": 45, "monster": "Goblin Angka", "img": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/92.png"},
+    {"q": "Berapakah hasil dari $8 \\times 8 + 20 - 4$ ?", "ans": 80, "monster": "Naga Aljabar", "img": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png"},
+    {"q": "Berapakah hasil dari $(50 \\div 2) + (5 \\times 4)$ ?", "ans": 45, "monster": "Penyihir Pecahan", "img": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/65.png"},
+    {"q": "Berapakah hasil dari $145 - 25 \\times 4$ ?", "ans": 45, "monster": "Golem Logika", "img": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/95.png"},
+    {"q": "Berapakah hasil dari $9 \\times 9 - 31$ ?", "ans": 50, "monster": "Ksatria Angka", "img": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png"}
 ]
 
 ENGLISH_BANK = [
-    {"q": 'Lengkapi kalimat: "She _______ to the library yesterday to borrow a book."', "options": ["--- Pilih ---", "go", "went", "gone", "going"], "ans": "went", "monster": "Hantu Grammar", "img": "https://media.giphy.com/media/3o7TKoWnHwjd6UkN8Q/giphy.gif"},
-    {"q": 'Apa sinonim (persamaan kata) dari kata "Brave"?', "options": ["--- Pilih ---", "Coward", "Courageous", "Lazy", "Sad"], "ans": "Courageous", "monster": "Penyihir Kosakata", "img": "https://media.giphy.com/media/26FPnj46AKHIMgY6c/giphy.gif"},
-    {"q": 'Lengkapi kalimat Present Perfect: "They have _______ finished their homework."', "options": ["--- Pilih ---", "already", "yet", "still", "ever"], "ans": "already", "monster": "Goblin Tense", "img": "https://media.giphy.com/media/3oKIPnAiaMCws8nOsE/giphy.gif"},
-    {"q": 'Apa bentuk V2 (Past Tense) dari kata "Eat"?', "options": ["--- Pilih ---", "Eaten", "Ate", "Eating", "Eats"], "ans": "Ate", "monster": "Monster Irregular", "img": "https://media.giphy.com/media/xT5LMBauZz1B8Y2iBy/giphy.gif"},
-    {"q": 'Lengkapi kalimat: "I _______ a movie with my friends last night."', "options": ["--- Pilih ---", "watch", "watching", "watched", "watches"], "ans": "watched", "monster": "Bayangan Verb", "img": "https://media.giphy.com/media/l0HlRnAWXxn0MhOBK/giphy.gif"}
+    {"q": 'Lengkapi kalimat: "She _______ to the library yesterday to borrow a book."', "options": ["--- Pilih ---", "go", "went", "gone", "going"], "ans": "went", "monster": "Hantu Grammar", "img": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/93.png"},
+    {"q": 'Apa sinonim (persamaan kata) dari kata "Brave"?', "options": ["--- Pilih ---", "Coward", "Courageous", "Lazy", "Sad"], "ans": "Courageous", "monster": "Penyihir Kosakata", "img": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/124.png"},
+    {"q": 'Lengkapi kalimat Present Perfect: "They have _______ finished their homework."', "options": ["--- Pilih ---", "already", "yet", "still", "ever"], "ans": "already", "monster": "Goblin Tense", "img": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png"},
+    {"q": 'Apa bentuk V2 (Past Tense) dari kata "Eat"?', "options": ["--- Pilih ---", "Eaten", "Ate", "Eating", "Eats"], "ans": "Ate", "monster": "Monster Irregular", "img": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png"},
+    {"q": 'Lengkapi kalimat: "I _______ a movie with my friends last night."', "options": ["--- Pilih ---", "watch", "watching", "watched", "watches"], "ans": "watched", "monster": "Bayangan Verb", "img": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/130.png"}
 ]
 
-# Fungsi mengambil soal baru secara acak
 def get_random_question(mode):
     if mode == "math":
         return random.choice(MATH_BANK)
@@ -124,7 +123,7 @@ def get_random_question(mode):
         return random.choice(ENGLISH_BANK)
 
 # ==========================================
-# HALAMAN 1: MENU UTAMA (LOBI ARCADE)
+# HALAMAN 1: MENU UTAMA
 # ==========================================
 if st.session_state.page == "menu":
     st.markdown("<h1 class='arcade-title'>SMART LEARNING HUB</h1>", unsafe_allow_html=True)
@@ -159,10 +158,9 @@ if st.session_state.page == "menu":
         st.warning("⚠️ Masukkan nama kamu dulu untuk menyalakan mesin game.")
 
 # ==========================================
-# HALAMAN 2: ARENA PERMAINAN (GAMEPLAY)
+# HALAMAN 2: GAMEPLAY ARENA
 # ==========================================
 elif st.session_state.page == "game":
-    # Cek Game Over
     if st.session_state.hp <= 0:
         st.markdown("<h1 class='arcade-title' style='color: #ef4444;'>💀 GAME OVER 💀</h1>", unsafe_allow_html=True)
         st.markdown(f"<p style='text-align: center;'>Kamu kehabisan nyawa, <b>{st.session_state.username}</b>. Semangat coba lagi!</p>", unsafe_allow_html=True)
@@ -174,9 +172,7 @@ elif st.session_state.page == "game":
         st.stop()
 
     q_data = st.session_state.current_question
-    mode_title = "MATEMATIKA" if st.session_state.mode == "math" else "BAHASA INGGRIS"
 
-    # Status Bar Panel Atas
     st.markdown(f"""
         <div class='status-panel'>
             <span>👤 PLAYER: <b>{st.session_state.username}</b></span>
@@ -187,17 +183,15 @@ elif st.session_state.page == "game":
     
     st.markdown("<div class='game-arena'>", unsafe_allow_html=True)
     
-    # Tampilan Monster & Pertanyaan Bergambar GIF
     col_img, col_txt = st.columns([1, 1.5])
     with col_img:
-        st.image(q_data["img"], use_column_width=True)
+        st.image(q_data["img"], use_container_width=True)
     with col_txt:
         st.markdown(f"### 👾 {q_data['monster']} Menghadang!")
         st.markdown(f"**Soal:** {q_data['q']}")
 
     st.write("---")
 
-    # Form Jawaban Berdasarkan Mode
     if st.session_state.mode == "math":
         user_ans = st.number_input("Ketik jawaban angka:", step=1, format="%d", key="ans_math")
         if st.button("⚔️ SERANG MONSTER!"):
