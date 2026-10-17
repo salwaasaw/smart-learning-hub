@@ -7,12 +7,11 @@ st.set_page_config(
     layout="centered"
 )
 
-# STYLING CSS: Background Bergerak Jelas & Kontras Nyaman
+# STYLING CSS: Background Bergerak Jelas & Kontras Nyaman (Desain Tetap)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
 
-    /* Animasi Gradasi Dibuat Lebih Kontras & Terlihat Bergerak */
     @keyframes movingGradient {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
@@ -45,7 +44,6 @@ st.markdown("""
         text-transform: uppercase;
     }
 
-    /* Kotak Kaca Modern Transparan agar Background Tetap Kelihatan Bergerak di Belakangnya */
     .card-clean {
         background: rgba(15, 23, 42, 0.65);
         backdrop-filter: blur(12px);
@@ -120,14 +118,17 @@ if "current_q" not in st.session_state: st.session_state.current_q = None
 if "game_over" not in st.session_state: st.session_state.game_over = False
 if "wrong_msg" not in st.session_state: st.session_state.wrong_msg = ""
 
-# Bank Soal Unlimited
+# Bank Soal Diperluas (Dijamin Tidak Berulang Sampai Habis)
 MATH_BANK = [
     {"id": m, "q": q, "ans": a, "monster": name, "emoji": em} for m, (q, a, name, em) in enumerate([
         ("Berapakah hasil dari 12 x 5 - 15 ?", 45, "Penjaga Angka", "🔢"),
         ("Berapakah hasil dari 8 x 8 + 20 - 4 ?", 80, "Penjaga Gerbang", "🛡️"),
         ("Berapakah hasil dari (50 / 2) + (5 x 4) ?", 45, "Kalkulator Kuno", "⚙️"),
         ("Berapakah hasil dari 100 - 25 x 2 ?", 50, "Penjaga Waktu", "⏳"),
-        ("Berapakah hasil dari 15 + 15 x 3 ?", 60, "Penjaga Logika", "🧭")
+        ("Berapakah hasil dari 15 + 15 x 3 ?", 60, "Penjaga Logika", "🧭"),
+        ("Berapakah hasil dari 9 x 9 - 31 ?", 50, "Penjaga Angkasa", "🌠"),
+        ("Berapakah hasil dari 145 - 25 x 4 ?", 45, "Penjaga Misteri", "🗝️"),
+        ("Berapakah hasil dari 24 / 3 + 12 ?", 20, "Penjaga Kuil", "🏛️")
     ])
 ]
 
@@ -137,16 +138,24 @@ ENGLISH_BANK = [
         ('Apa sinonim dari kata "Brave"?', ["--- Pilih ---", "Coward", "Courageous", "Lazy", "Sad"], "Courageous", "Pemberantas Huruf", "✍️"),
         ('Apa bentuk V2 (Past Tense) dari "Eat"?', ["--- Pilih ---", "Eaten", "Ate", "Eating", "Eats"], "Ate", "Arsiparis Bahasa", "📜"),
         ('Lengkapi kalimat: "They _______ football last Sunday."', ["--- Pilih ---", "play", "playing", "played", "plays"], "played", "Pengawal Kalimat", "🛡️"),
-        ('Apa arti dari kata "Smart"?', ["--- Pilih ---", "Bodoh", "Cerdas", "Malas", "Lambat"], "Cerdas", "Master Kosakata", "💡")
+        ('Apa arti dari kata "Smart"?', ["--- Pilih ---", "Bodoh", "Cerdas", "Malas", "Lambat"], "Cerdas", "Master Kosakata", "💡"),
+        ('Lengkapi kalimat: "He has _______ finished his homework."', ["--- Pilih ---", "already", "yet", "still", "ever"], "already", "Penjaga Waktu", "⏳"),
+        ('Apa bentuk V3 (Past Participle) dari "Go"?', ["--- Pilih ---", "Went", "Gone", "Going", "Goes"], "Gone", "Ksatria Grammar", "⚔️"),
+        ('Lengkapi kalimat: "We _______ a movie last night."', ["--- Pilih ---", "watch", "watched", "watching", "watches"], "watched", "Penjaga Layar", "📺")
     ])
 ]
 
 def get_new_question(mode):
     bank = MATH_BANK if mode == "math" else ENGLISH_BANK
+    
+    # Ambil ID soal yang BELUM pernah muncul di sesi ini
     available = [q for q in bank if q["id"] not in st.session_state.used_questions]
+    
+    # Jika semua soal di bank sudah habis, kosongkan riwayat lalu isi ulang (Unlimited loop)
     if not available:
         st.session_state.used_questions = []
         available = bank
+        
     chosen = random.choice(available)
     st.session_state.used_questions.append(chosen["id"])
     return chosen
