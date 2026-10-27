@@ -12,14 +12,27 @@ st.set_page_config(
 # ==================== KONEKSI DATABASE MYSQL ====================
 def get_db_connection():
     try:
-        connection = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",          # Kosongkan jika pakai XAMPP default
-            database="db_smart_learning"
-        )
+        # Jika dijalankan secara online di Streamlit Cloud (membaca Secrets)
+        if "mysql" in st.secrets:
+            connection = mysql.connector.connect(
+                host=st.secrets["mysql"]["host"],
+                port=st.secrets["mysql"].get("port", 4000),
+                user=st.secrets["mysql"]["user"],
+                password=st.secrets["mysql"]["password"],
+                database=st.secrets["mysql"]["database"],
+                ssl_disabled=False
+            )
+        else:
+            # Jika dijalankan secara offline di laptop (XAMPP lokal)
+            connection = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="",
+                database="db_smart_learning"
+            )
         return connection
     except Exception as e:
+        st.error(f"Gagal terhubung ke database: {e}")
         return None
 
 def setup_database_tables():
