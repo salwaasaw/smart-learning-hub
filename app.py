@@ -61,21 +61,14 @@ def setup_database_tables():
 
 setup_database_tables()
 
-# ==================== STYLING CSS ELEGAN ====================
+# ==================== STYLING CSS RINGAN & OPTIMAL ====================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
 
-    @keyframes movingGradient {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-
+    /* Latar belakang statis yang elegan tanpa animasi berat */
     .stApp {
-        background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #0f172a);
-        background-size: 300% 300%;
-        animation: movingGradient 12s ease infinite;
+        background: linear-gradient(135deg, #0f172a, #1e1b4b, #311042);
         font-family: 'Plus Jakarta Sans', sans-serif;
         color: #ffffff !important;
     }
@@ -104,14 +97,13 @@ st.markdown("""
         font-weight: 700;
     }
 
+    /* Kartu dipercepat tanpa efek blur (backdrop-filter dihapus agar tidak ngelag) */
     .card-unified {
-        background: rgba(15, 23, 42, 0.75);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        background: rgba(15, 23, 42, 0.92);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 18px;
         padding: 22px 25px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
         margin-bottom: 20px;
     }
 
@@ -124,22 +116,17 @@ st.markdown("""
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    @keyframes bounceMonster {
-        0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-8px) scale(1.08); }
-    }
-
+    /* Emoji monster dibuat statis agar browser tidak terbebani render ulang */
     .monster-emoji {
         text-align: center;
         font-size: 4.5rem;
-        animation: bounceMonster 1.8s infinite ease-in-out;
         margin-bottom: 10px;
     }
 
     .status-panel {
         display: flex;
         justify-content: space-between;
-        background: rgba(15, 23, 42, 0.85);
+        background: rgba(15, 23, 42, 0.95);
         padding: 12px 20px;
         border-radius: 12px;
         border: 1px solid rgba(255, 255, 255, 0.15);
@@ -150,7 +137,7 @@ st.markdown("""
     }
 
     .stat-box {
-        background: rgba(30, 41, 59, 0.8);
+        background: rgba(30, 41, 59, 0.9);
         border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 14px;
         padding: 15px;
