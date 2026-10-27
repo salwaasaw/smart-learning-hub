@@ -30,7 +30,6 @@ def setup_database_tables():
             CREATE TABLE IF NOT EXISTS highscores (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(50),
-                game_type VARCHAR(50),
                 mode VARCHAR(50),
                 score INT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -198,18 +197,13 @@ if "game_over" not in st.session_state: st.session_state.game_over = False
 if "wrong_msg" not in st.session_state: st.session_state.wrong_msg = ""
 if "saved_to_db" not in st.session_state: st.session_state.saved_to_db = False
 if "start_time" not in st.session_state: st.session_state.start_time = time.time()
-if "math_input_val" not in st.session_state: st.session_state.math_input_val = 0
-
-# Match Answer State
 if "matched_count" not in st.session_state: st.session_state.matched_count = 0
-
-# Tebak Kata State
 if "word_target" not in st.session_state: st.session_state.word_target = ""
 if "word_hint" not in st.session_state: st.session_state.word_hint = ""
 
 TIME_LIMIT = 25
 
-# ==================== DATA BANK SOAL & KUSTOMISASI ====================
+# ==================== BANK SOAL DIPERBANYAK ====================
 MATH_BANK = [
     {"id": m, "q": q, "ans": a, "monster": name, "emoji": em} for m, (q, a, name, em) in enumerate([
         ("Berapakah hasil dari 12 x 5 - 15 ?", 45, "Goblin Frost", "👾"),
@@ -217,7 +211,11 @@ MATH_BANK = [
         ("Berapakah hasil dari (50 / 2) + (5 x 4) ?", 45, "Wizard Shadow", "🧙‍♂️"),
         ("Berapakah hasil dari 100 - 25 x 2 ?", 50, "Cyborg Mech", "🤖"),
         ("Berapakah hasil dari 15 + 15 x 3 ?", 60, "Forest Spirit", "🦊"),
-        ("Berapakah hasil dari 9 x 9 - 31 ?", 50, "Cosmic Phantom", "👻")
+        ("Berapakah hasil dari 9 x 9 - 31 ?", 50, "Cosmic Phantom", "👻"),
+        ("Berapakah hasil dari 25 ditambah 5 dikali 4 ?", 45, "Math Guardian", "📐"),
+        ("Berapakah hasil dari 144 dibagi 12 ditambah 8 ?", 20, "Number Knight", "🛡️"),
+        ("Berapakah hasil dari 15 dikali 4 dikurangi 30 ?", 30, "Algebra Beast", "🔮"),
+        ("Berapakah hasil dari 50 dikurang 5 dikali 6 ?", 20, "Calculus Titan", "⚡")
     ])
 ]
 
@@ -226,11 +224,16 @@ ENGLISH_BANK = [
         ('Lengkapi kalimat: "She _______ to the library yesterday."', ["--- Pilih ---", "go", "went", "gone", "going"], "went", "Ghost Writer", "👻"),
         ('Apa sinonim dari kata "Brave"?', ["--- Pilih ---", "Coward", "Courageous", "Lazy", "Sad"], "Courageous", "Knight Honor", "🛡️"),
         ('Apa bentuk V2 (Past Tense) dari "Eat"?', ["--- Pilih ---", "Eaten", "Ate", "Eating", "Eats"], "Ate", "Tense Dragon", "🐲"),
-        ('Apa arti dari kata "Smart"?', ["--- Pilih ---", "Bodoh", "Cerdas", "Malas", "Lambat"], "Cerdas", "Wise Owl", "🦉")
+        ('Apa arti dari kata "Smart"?', ["--- Pilih ---", "Bodoh", "Cerdas", "Malas", "Lambat"], "Cerdas", "Wise Owl", "🦉"),
+        ('Lengkapi kalimat: "They _______ football last Sunday."', ["--- Pilih ---", "play", "playing", "played", "plays"], "played", "Sports Panther", "🐅"),
+        ('Lengkapi kalimat: "He has _______ finished his homework."', ["--- Pilih ---", "already", "yet", "still", "ever"], "already", "Time Warden", "⏳"),
+        ('Apa bentuk V3 (Past Participle) dari "Go"?', ["--- Pilih ---", "Went", "Gone", "Going", "Goes"], "Gone", "Grammar Knight", "⚔️"),
+        ('Lengkapi kalimat: "We _______ a movie last night."', ["--- Pilih ---", "watch", "watched", "watching", "watches"], "watched", "Cinema Phantom", "🎬"),
+        ('Apa sinonim dari kata "Fast"?', ["--- Pilih ---", "Slow", "Quick", "Lazy", "Tired"], "Quick", "Velocity Beast", "⚡"),
+        ('Lengkapi kalimat: "I _______ a book right now."', ["--- Pilih ---", "am reading", "read", "reads", "readed"], "am reading", "Reader Mage", "📖")
     ])
 ]
 
-# KATA KATA MATCH THE ANSWER BISA KAMU UBAH DI SINI SESUAI KEINGINAN
 CUSTOM_MATCH_DATA = [
     {"term": "Python", "def": "Bahasa Pemrograman AI & Web"},
     {"term": "MySQL", "def": "Sistem Database Relasional"},
@@ -272,18 +275,21 @@ def add_xp_and_game(username, xp_gained):
         cursor.close()
         conn.close()
 
-def save_score_to_mysql(game_type, score):
+def save_score_to_mysql(score):
     if not st.session_state.saved_to_db:
         conn = get_db_connection()
         if conn:
             cursor = conn.cursor()
-            query = "INSERT INTO highscores (username, game_type, mode, score) VALUES (%s, %s, %s, %s)"
-            values = (st.session_state.username, game_type, st.session_state.mode, score)
+            # Disesuaikan dengan kolom tabel highscores yang ada (username, mode, score)
+            query = "INSERT INTO highscores (username, mode, score) VALUES (%s, %s, %s)"
+            values = (st.session_state.username, st.session_state.mode, score)
             cursor.execute(query, values)
             conn.commit()
             cursor.close()
             conn.close()
-            add_xp_and_game(st.session_state.username, score)
+            
+            earned_xp = max(score, 10) if score > 0 else 10
+            add_xp_and_game(st.session_state.username, earned_xp)
             st.session_state.saved_to_db = True
 
 def get_badge(xp):
@@ -303,7 +309,6 @@ def get_new_question(mode):
     chosen = random.choice(available)
     st.session_state.used_questions.append(chosen["id"])
     st.session_state.start_time = time.time()
-    st.session_state.math_input_val = 0  # Reset input angka matematika agar bersih di soal berikutnya
     return chosen
 
 # ==================== HALAMAN 1: LOGIN AKUN ====================
@@ -324,7 +329,6 @@ if st.session_state.page == "login":
     if st.button("Masuk ke Dashboard 🚀"):
         if input_user.strip():
             st.session_state.username = input_user.strip()
-            # Daftarkan user ke database jika belum ada
             conn = get_db_connection()
             if conn:
                 cursor = conn.cursor()
@@ -442,7 +446,6 @@ elif st.session_state.page == "mode_select_quiz":
     st.markdown("<h2 style='text-align: center;'>⚔️ Pilih Mode Quiz Battle</h2>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Tombol disejajarkan rapi dalam satu baris (Matematika, B. Inggris, Dashboard)
     c1, c2, c3 = st.columns(3)
     with c1:
         if st.button("🧮 Matematika"):
@@ -480,7 +483,7 @@ elif st.session_state.page == "game_quiz":
         st.rerun()
 
     if st.session_state.game_over:
-        save_score_to_mysql("Quiz Battle", st.session_state.score)
+        save_score_to_mysql(st.session_state.score)
 
         st.markdown("<h2 style='text-align: center; color: #f87171;'>Permainan Berakhir</h2>", unsafe_allow_html=True)
         st.markdown(f"<p style='text-align: center; color: #e2e8f0; font-size: 1.1rem;'>{st.session_state.wrong_msg}</p>", unsafe_allow_html=True)
@@ -489,7 +492,7 @@ elif st.session_state.page == "game_quiz":
             <div class='card-unified' style='text-align: center;'>
                 <div class='cartoon-row'>🏆 💀 ✨ 📉 🎮</div>
                 <p style='font-size: 1.1rem; margin-bottom: 5px; color: #ffffff;'>Total Skor / XP Diperoleh:</p>
-                <h1 style='color: #38bdf8; font-size: 3rem; margin-top: 0;'>+{st.session_state.score} XP</h1>
+                <h1 style='color: #38bdf8; font-size: 3rem; margin-top: 0;'>+{max(st.session_state.score, 10)} XP</h1>
                 <p style='color: #34d399; font-size: 0.85rem; margin-top: 10px;'>✓ XP & game selesai berhasil dicatat ke database!</p>
             </div>
         """, unsafe_allow_html=True)
@@ -529,7 +532,7 @@ elif st.session_state.page == "game_quiz":
     """, unsafe_allow_html=True)
 
     if st.session_state.mode == "math":
-        ans = st.number_input("Masukkan jawaban angka:", value=st.session_state.math_input_val, step=1, format="%d", key="m_ans")
+        ans = st.number_input("Masukkan jawaban angka:", step=1, format="%d", key=f"m_ans_{q['id']}")
         if st.button("Kirim Jawaban"):
             if ans == q["ans"]:
                 st.session_state.score += 10
@@ -541,7 +544,7 @@ elif st.session_state.page == "game_quiz":
                 st.rerun()
 
     elif st.session_state.mode == "english":
-        ans = st.radio("Pilih jawaban:", q["options"], key="e_ans")
+        ans = st.radio("Pilih jawaban:", q["options"], key=f"e_ans_{q['id']}")
         if st.button("Kirim Jawaban"):
             if ans == q["ans"]:
                 st.session_state.score += 10
@@ -567,7 +570,6 @@ elif st.session_state.page == "game_match":
     st.markdown("<h2 style='text-align: center;'>🧩 Match the Answer</h2>", unsafe_allow_html=True)
     st.write("Pasangkan istilah di sebelah kiri dengan definisi yang benar di sebelah kanan.")
 
-    # Cek apakah semua benar
     all_matched = True
     for item in CUSTOM_MATCH_DATA:
         if st.session_state.get(f"match_{item['term']}") != item["def"]:
@@ -585,7 +587,7 @@ elif st.session_state.page == "game_match":
     if st.button("Cek Jawaban"):
         if all_matched:
             st.session_state.score = 50
-            save_score_to_mysql("Match Answer", st.session_state.score)
+            save_score_to_mysql(st.session_state.score)
             st.success("🎉 Selamat! Semua pasangan benar! (+50 XP ditambahkan ke database).")
         else:
             st.error("Masih ada pasangan yang keliru. Silakan periksa kembali!")
@@ -612,12 +614,12 @@ elif st.session_state.page == "game_word":
         </div>
     """, unsafe_allow_html=True)
 
-    guess = st.text_input("Masukkan kata tebakanmu:", placeholder="Ketik jawaban di sini...").strip().upper()
+    guess = st.text_input("Masukkan kata tebakanmu:", placeholder="Ketik jawaban di sini...", key="word_guess_input").strip().upper()
 
     if st.button("Kirim Tebakan"):
         if guess == st.session_state.word_target:
             st.session_state.score = 30
-            save_score_to_mysql("Tebak Kata", st.session_state.score)
+            save_score_to_mysql(st.session_state.score)
             st.success(f"🎉 TEPAT SEKALI! Jawabannya adalah **{st.session_state.word_target}** (+30 XP ditambahkan)!")
             st.session_state.game_over = True
         else:
@@ -636,7 +638,7 @@ elif st.session_state.page == "game_word":
 # ==================== HALAMAN 4: LEADERBOARD ====================
 elif st.session_state.page == "leaderboard":
     st.markdown("<h2 style='text-align: center;'>🏆 Papan Peringkat (Leaderboard)</h2>", unsafe_allow_html=True)
-    st.write("Daftar pemain dengan XP tertinggi yang tersimpan di Database MySQL:")
+    st.markdown("<p style='text-align: center; color: #cbd5e1; margin-bottom: 25px;'>Pemain dengan XP dan Level Tertinggi di Platform</p>", unsafe_allow_html=True)
 
     conn = get_db_connection()
     if conn:
