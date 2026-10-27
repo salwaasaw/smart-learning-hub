@@ -15,7 +15,7 @@ def get_db_connection():
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="",          # Password XAMPP default biasanya kosong
+            password="",          # Kosongkan jika pakai XAMPP default
             database="db_smart_learning"
         )
         return connection
@@ -26,7 +26,6 @@ def setup_database_tables():
     conn = get_db_connection()
     if conn:
         cursor = conn.cursor()
-        # Tabel Highscores
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS highscores (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -37,7 +36,6 @@ def setup_database_tables():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        # Tabel User Stats (XP & Badge)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS user_stats (
                 username VARCHAR(50) PRIMARY KEY,
@@ -51,7 +49,7 @@ def setup_database_tables():
 
 setup_database_tables()
 
-# ==================== STYLING CSS ELEGAN & DARK MINIMALIST ====================
+# ==================== STYLING CSS ELEGAN ====================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
@@ -139,7 +137,6 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* CARD STATISTIK PROGRES */
     .stat-box {
         background: rgba(30, 41, 59, 0.8);
         border: 1px solid rgba(255, 255, 255, 0.12);
@@ -201,9 +198,9 @@ if "game_over" not in st.session_state: st.session_state.game_over = False
 if "wrong_msg" not in st.session_state: st.session_state.wrong_msg = ""
 if "saved_to_db" not in st.session_state: st.session_state.saved_to_db = False
 if "start_time" not in st.session_state: st.session_state.start_time = time.time()
+if "math_input_val" not in st.session_state: st.session_state.math_input_val = 0
 
 # Match Answer State
-if "match_pairs" not in st.session_state: st.session_state.match_pairs = []
 if "matched_count" not in st.session_state: st.session_state.matched_count = 0
 
 # Tebak Kata State
@@ -212,7 +209,7 @@ if "word_hint" not in st.session_state: st.session_state.word_hint = ""
 
 TIME_LIMIT = 25
 
-# ==================== DATA BANK SOAL ====================
+# ==================== DATA BANK SOAL & KUSTOMISASI ====================
 MATH_BANK = [
     {"id": m, "q": q, "ans": a, "monster": name, "emoji": em} for m, (q, a, name, em) in enumerate([
         ("Berapakah hasil dari 12 x 5 - 15 ?", 45, "Goblin Frost", "👾"),
@@ -233,7 +230,8 @@ ENGLISH_BANK = [
     ])
 ]
 
-MATCH_DATA = [
+# KATA KATA MATCH THE ANSWER BISA KAMU UBAH DI SINI SESUAI KEINGINAN
+CUSTOM_MATCH_DATA = [
     {"term": "Python", "def": "Bahasa Pemrograman AI & Web"},
     {"term": "MySQL", "def": "Sistem Database Relasional"},
     {"term": "Streamlit", "def": "Framework Web App Python"},
@@ -248,7 +246,7 @@ WORD_GUESS_DATA = [
     {"word": "HARDWARE", "hint": "Komponen fisik pada sistem komputer"}
 ]
 
-# ==================== HELPER FUNCTIONS ====================
+# ==================== DATABASE HELPER FUNCTIONS ====================
 def get_user_stats(username):
     conn = get_db_connection()
     if conn:
@@ -261,7 +259,7 @@ def get_user_stats(username):
             return row["total_xp"], row["games_played"]
     return 0, 0
 
-def add_xp(username, xp_gained):
+def add_xp_and_game(username, xp_gained):
     conn = get_db_connection()
     if conn:
         cursor = conn.cursor()
@@ -285,7 +283,7 @@ def save_score_to_mysql(game_type, score):
             conn.commit()
             cursor.close()
             conn.close()
-            add_xp(st.session_state.username, score)
+            add_xp_and_game(st.session_state.username, score)
             st.session_state.saved_to_db = True
 
 def get_badge(xp):
@@ -305,9 +303,10 @@ def get_new_question(mode):
     chosen = random.choice(available)
     st.session_state.used_questions.append(chosen["id"])
     st.session_state.start_time = time.time()
+    st.session_state.math_input_val = 0  # Reset input angka matematika agar bersih di soal berikutnya
     return chosen
 
-# ==================== HALAMAN 1: LOGIN ====================
+# ==================== HALAMAN 1: LOGIN AKUN ====================
 if st.session_state.page == "login":
     st.markdown("<h1 class='game-title'>Smart Learning Hub</h1>", unsafe_allow_html=True)
     st.markdown("<div class='game-subtitle'>Belajar jadi lebih seru!</div>", unsafe_allow_html=True)
@@ -315,19 +314,28 @@ if st.session_state.page == "login":
     st.markdown("""
         <div class='card-unified'>
             <div class='cartoon-row'>🚀 🦊 🦖 🦉 🧙‍♂️ 🌟 🎮</div>
-            <h3 style='margin-bottom: 5px; color: #ffffff;'>👋 Selamat Datang!</h3>
-            <p style='color: #cbd5e1; margin-bottom: 20px;'>Silakan masukkan nama kamu untuk membuka Dashboard Progres.</p>
+            <h3 style='margin-bottom: 5px; color: #ffffff;'>👋 Login Akun Pemain</h3>
+            <p style='color: #cbd5e1; margin-bottom: 20px;'>Masukkan nama akunmu untuk melacak XP, level, dan skor di database.</p>
         </div>
     """, unsafe_allow_html=True)
     
-    st.session_state.username = st.text_input("Masukkan Nama:", value=st.session_state.username, placeholder="Contoh: Salwa")
+    input_user = st.text_input("Username Akun:", value=st.session_state.username, placeholder="Ketik nama kamu...")
     
     if st.button("Masuk ke Dashboard 🚀"):
-        if st.session_state.username.strip():
+        if input_user.strip():
+            st.session_state.username = input_user.strip()
+            # Daftarkan user ke database jika belum ada
+            conn = get_db_connection()
+            if conn:
+                cursor = conn.cursor()
+                cursor.execute("INSERT IGNORE INTO user_stats (username, total_xp, games_played) VALUES (%s, 0, 0)", (st.session_state.username,))
+                conn.commit()
+                cursor.close()
+                conn.close()
             st.session_state.page = "dashboard"
             st.rerun()
         else:
-            st.warning("Mohon isi nama kamu terlebih dahulu!")
+            st.warning("Mohon isi username akun terlebih dahulu!")
 
 # ==================== HALAMAN 2: DASHBOARD PROGRES ====================
 elif st.session_state.page == "dashboard":
@@ -338,8 +346,7 @@ elif st.session_state.page == "dashboard":
     level = (xp // 50) + 1
     badge = get_badge(xp)
 
-    # Header Progres Belajar
-    st.markdown(f"<h3 style='color: #38bdf8;'>PROGRES BELAJAR ({st.session_state.username})</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='color: #38bdf8;'>PROGRES BELAJAR: {st.session_state.username}</h3>", unsafe_allow_html=True)
     
     c1, c2, c3 = st.columns(3)
     with c1:
@@ -367,7 +374,6 @@ elif st.session_state.page == "dashboard":
     st.markdown(f"<p style='margin-top: 15px;'>Badge Saat Ini: <b>{badge}</b></p>", unsafe_allow_html=True)
     st.markdown("---")
 
-    # Menu Pilih Permainan
     st.markdown("### 🎯 Pilih Permainan")
 
     col_g1, col_g2 = st.columns(2)
@@ -427,16 +433,19 @@ elif st.session_state.page == "dashboard":
             st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("⬅️ Ganti Akun"):
+    if st.button("⬅️ Keluar / Ganti Akun"):
         st.session_state.page = "login"
         st.rerun()
 
 # ==================== SUB-PAGE: PILIH MODE QUIZ BATTLE ====================
 elif st.session_state.page == "mode_select_quiz":
     st.markdown("<h2 style='text-align: center;'>⚔️ Pilih Mode Quiz Battle</h2>", unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Mode Matematika 🧮"):
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Tombol disejajarkan rapi dalam satu baris (Matematika, B. Inggris, Dashboard)
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        if st.button("🧮 Matematika"):
             st.session_state.mode = "math"
             st.session_state.score = 0
             st.session_state.game_over = False
@@ -445,9 +454,8 @@ elif st.session_state.page == "mode_select_quiz":
             st.session_state.current_q = get_new_question("math")
             st.session_state.page = "game_quiz"
             st.rerun()
-
-    with col2:
-        if st.button("Mode Bahasa Inggris 📚"):
+    with c2:
+        if st.button("📚 B. Inggris"):
             st.session_state.mode = "english"
             st.session_state.score = 0
             st.session_state.game_over = False
@@ -456,10 +464,10 @@ elif st.session_state.page == "mode_select_quiz":
             st.session_state.current_q = get_new_question("english")
             st.session_state.page = "game_quiz"
             st.rerun()
-
-    if st.button("⬅️ Kembali ke Dashboard"):
-        st.session_state.page = "dashboard"
-        st.rerun()
+    with c3:
+        if st.button("🏠 Dashboard"):
+            st.session_state.page = "dashboard"
+            st.rerun()
 
 # ==================== GAME 1: QUIZ BATTLE ====================
 elif st.session_state.page == "game_quiz":
@@ -482,7 +490,7 @@ elif st.session_state.page == "game_quiz":
                 <div class='cartoon-row'>🏆 💀 ✨ 📉 🎮</div>
                 <p style='font-size: 1.1rem; margin-bottom: 5px; color: #ffffff;'>Total Skor / XP Diperoleh:</p>
                 <h1 style='color: #38bdf8; font-size: 3rem; margin-top: 0;'>+{st.session_state.score} XP</h1>
-                <p style='color: #34d399; font-size: 0.85rem; margin-top: 10px;'>✓ Riwayat skor & XP berhasil dicatat ke database!</p>
+                <p style='color: #34d399; font-size: 0.85rem; margin-top: 10px;'>✓ XP & game selesai berhasil dicatat ke database!</p>
             </div>
         """, unsafe_allow_html=True)
         
@@ -521,7 +529,7 @@ elif st.session_state.page == "game_quiz":
     """, unsafe_allow_html=True)
 
     if st.session_state.mode == "math":
-        ans = st.number_input("Masukkan jawaban angka:", step=1, format="%d", key="m_ans")
+        ans = st.number_input("Masukkan jawaban angka:", value=st.session_state.math_input_val, step=1, format="%d", key="m_ans")
         if st.button("Kirim Jawaban"):
             if ans == q["ans"]:
                 st.session_state.score += 10
@@ -559,38 +567,36 @@ elif st.session_state.page == "game_match":
     st.markdown("<h2 style='text-align: center;'>🧩 Match the Answer</h2>", unsafe_allow_html=True)
     st.write("Pasangkan istilah di sebelah kiri dengan definisi yang benar di sebelah kanan.")
 
-    if st.session_state.matched_count == len(MATCH_DATA):
-        st.session_state.score = 50
-        save_score_to_mysql("Match Answer", st.session_state.score)
-        st.success("🎉 Selamat! Kamu berhasil memasangkan semua istilah dengan benar (+50 XP)!")
-        if st.button("Kembali ke Dashboard"):
-            st.session_state.page = "dashboard"
-            st.rerun()
-        st.stop()
+    # Cek apakah semua benar
+    all_matched = True
+    for item in CUSTOM_MATCH_DATA:
+        if st.session_state.get(f"match_{item['term']}") != item["def"]:
+            all_matched = False
+            break
 
-    for item in MATCH_DATA:
+    for item in CUSTOM_MATCH_DATA:
         col1, col2 = st.columns([1, 2])
         with col1:
             st.info(f"📌 **{item['term']}**")
         with col2:
-            options = ["--- Pilih Definisi ---"] + [d["def"] for d in MATCH_DATA]
-            user_choice = st.selectbox(f"Definisi {item['term']}:", options, key=f"match_{item['term']}")
-            if user_choice == item["def"]:
-                st.caption("✅ Cocok!")
+            options = ["--- Pilih Definisi ---"] + [d["def"] for d in CUSTOM_MATCH_DATA]
+            st.selectbox(f"Definisi {item['term']}:", options, key=f"match_{item['term']}")
 
-    if st.button("Cek Semua Pasangan"):
-        correct_all = True
-        for item in MATCH_DATA:
-            if st.session_state.get(f"match_{item['term']}") != item["def"]:
-                correct_all = False
-                break
-        if correct_all:
-            st.session_state.matched_count = len(MATCH_DATA)
-            st.rerun()
+    if st.button("Cek Jawaban"):
+        if all_matched:
+            st.session_state.score = 50
+            save_score_to_mysql("Match Answer", st.session_state.score)
+            st.success("🎉 Selamat! Semua pasangan benar! (+50 XP ditambahkan ke database).")
         else:
-            st.error("Masih ada pasangan yang belum tepat. Silakan periksa kembali!")
+            st.error("Masih ada pasangan yang keliru. Silakan periksa kembali!")
 
-    if st.button("Kembali ke Dashboard"):
+    if st.session_state.saved_to_db:
+        if st.button("Kembali ke Dashboard"):
+            st.session_state.page = "dashboard"
+            st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("Keluar ke Dashboard"):
         st.session_state.page = "dashboard"
         st.rerun()
 
@@ -606,13 +612,13 @@ elif st.session_state.page == "game_word":
         </div>
     """, unsafe_allow_html=True)
 
-    guess = st.text_input("Masukkan kata tebakanmu (Huruf Besar/Kecil Bebas):", placeholder="Ketik jawaban di sini...").strip().upper()
+    guess = st.text_input("Masukkan kata tebakanmu:", placeholder="Ketik jawaban di sini...").strip().upper()
 
     if st.button("Kirim Tebakan"):
         if guess == st.session_state.word_target:
             st.session_state.score = 30
             save_score_to_mysql("Tebak Kata", st.session_state.score)
-            st.success(f"🎉 TEPAT SEKALI! Jawabannya adalah **{st.session_state.word_target}** (+30 XP)!")
+            st.success(f"🎉 TEPAT SEKALI! Jawabannya adalah **{st.session_state.word_target}** (+30 XP ditambahkan)!")
             st.session_state.game_over = True
         else:
             st.error("Tebakanmu masih belum tepat, coba lagi!")
@@ -622,7 +628,8 @@ elif st.session_state.page == "game_word":
             st.session_state.page = "dashboard"
             st.rerun()
 
-    if st.button("Kembali ke Dashboard"):
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("Keluar ke Dashboard"):
         st.session_state.page = "dashboard"
         st.rerun()
 
@@ -652,8 +659,9 @@ elif st.session_state.page == "leaderboard":
                 })
             st.table(leaderboard_data)
         else:
-            st.info("Belum ada data pemain. Jadilah yang pertama bermain!")
+            st.info("Belum ada data pemain di database. Jadilah yang pertama bermain!")
 
+    st.markdown("<br>", unsafe_allow_html=True)
     if st.button("⬅️ Kembali ke Dashboard"):
         st.session_state.page = "dashboard"
         st.rerun()
