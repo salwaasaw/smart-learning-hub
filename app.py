@@ -216,7 +216,7 @@ if "word_hint" not in st.session_state: st.session_state.word_hint = ""
 
 TIME_LIMIT = 25
 
-# ==================== BANK SOAL DIPERBANYAK ====================
+# ==================== BANK SOAL ====================
 MATH_BANK = [
     {"id": m, "q": q, "ans": a, "monster": name, "emoji": em} for m, (q, a, name, em) in enumerate([
         ("Berapakah hasil dari 12 x 5 - 15 ?", 45, "Goblin Frost", "👾"),
@@ -293,7 +293,6 @@ def save_score_to_mysql(score):
         conn = get_db_connection()
         if conn:
             cursor = conn.cursor()
-            # Disesuaikan dengan kolom tabel highscores yang ada (username, mode, score)
             query = "INSERT INTO highscores (username, mode, score) VALUES (%s, %s, %s)"
             values = (st.session_state.username, st.session_state.mode, score)
             cursor.execute(query, values)
