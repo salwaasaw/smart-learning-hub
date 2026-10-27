@@ -9,20 +9,49 @@ st.set_page_config(
     layout="centered"
 )
 
-# KONEKSI KE DATABASE MYSQL (XAMPP Lokal)
+# ==================== KONEKSI DATABASE MYSQL ====================
 def get_db_connection():
     try:
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="",
+            password="",          # Password XAMPP default biasanya kosong
             database="db_smart_learning"
         )
         return connection
     except Exception as e:
         return None
 
-# STYLING CSS: Tampilan Elegan & Animasi
+def setup_database_tables():
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor()
+        # Tabel Highscores
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS highscores (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(50),
+                game_type VARCHAR(50),
+                mode VARCHAR(50),
+                score INT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        # Tabel User Stats (XP & Badge)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_stats (
+                username VARCHAR(50) PRIMARY KEY,
+                total_xp INT DEFAULT 0,
+                games_played INT DEFAULT 0
+            )
+        """)
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+setup_database_tables()
+
+# ==================== STYLING CSS ELEGAN & DARK MINIMALIST ====================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
@@ -71,30 +100,30 @@ st.markdown("""
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 18px;
-        padding: 25px 30px;
+        padding: 22px 25px;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         margin-bottom: 20px;
     }
 
     .cartoon-row {
         text-align: center;
-        font-size: 2rem;
-        letter-spacing: 10px;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
+        font-size: 1.8rem;
+        letter-spacing: 8px;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     @keyframes bounceMonster {
         0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-10px) scale(1.1); }
+        50% { transform: translateY(-8px) scale(1.08); }
     }
 
     .monster-emoji {
         text-align: center;
-        font-size: 5rem;
+        font-size: 4.5rem;
         animation: bounceMonster 1.8s infinite ease-in-out;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
     }
 
     .status-panel {
@@ -108,6 +137,28 @@ st.markdown("""
         font-weight: 700;
         margin-bottom: 20px;
         color: #ffffff !important;
+    }
+
+    /* CARD STATISTIK PROGRES */
+    .stat-box {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        padding: 15px;
+        text-align: center;
+    }
+
+    .stat-val {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #38bdf8;
+    }
+
+    .stat-lbl {
+        font-size: 0.75rem;
+        color: #cbd5e1;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
     .stButton>button {
@@ -139,7 +190,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Session State Initialization
+# ==================== SESSION STATE INIT ====================
 if "page" not in st.session_state: st.session_state.page = "login"
 if "username" not in st.session_state: st.session_state.username = ""
 if "score" not in st.session_state: st.session_state.score = 0
@@ -151,9 +202,17 @@ if "wrong_msg" not in st.session_state: st.session_state.wrong_msg = ""
 if "saved_to_db" not in st.session_state: st.session_state.saved_to_db = False
 if "start_time" not in st.session_state: st.session_state.start_time = time.time()
 
-TIME_LIMIT = 25  # Waktu 25 detik per soal
+# Match Answer State
+if "match_pairs" not in st.session_state: st.session_state.match_pairs = []
+if "matched_count" not in st.session_state: st.session_state.matched_count = 0
 
-# Bank Soal dengan Emoji Monster Animasi Bergerak
+# Tebak Kata State
+if "word_target" not in st.session_state: st.session_state.word_target = ""
+if "word_hint" not in st.session_state: st.session_state.word_hint = ""
+
+TIME_LIMIT = 25
+
+# ==================== DATA BANK SOAL ====================
 MATH_BANK = [
     {"id": m, "q": q, "ans": a, "monster": name, "emoji": em} for m, (q, a, name, em) in enumerate([
         ("Berapakah hasil dari 12 x 5 - 15 ?", 45, "Goblin Frost", "👾"),
@@ -161,9 +220,7 @@ MATH_BANK = [
         ("Berapakah hasil dari (50 / 2) + (5 x 4) ?", 45, "Wizard Shadow", "🧙‍♂️"),
         ("Berapakah hasil dari 100 - 25 x 2 ?", 50, "Cyborg Mech", "🤖"),
         ("Berapakah hasil dari 15 + 15 x 3 ?", 60, "Forest Spirit", "🦊"),
-        ("Berapakah hasil dari 9 x 9 - 31 ?", 50, "Cosmic Phantom", "👻"),
-        ("Berapakah hasil dari 145 - 25 x 4 ?", 45, "Ancient Golem", "🗿"),
-        ("Berapakah hasil dari 24 / 3 + 12 ?", 20, "Temple Guardian", "🦁")
+        ("Berapakah hasil dari 9 x 9 - 31 ?", 50, "Cosmic Phantom", "👻")
     ])
 ]
 
@@ -172,13 +229,72 @@ ENGLISH_BANK = [
         ('Lengkapi kalimat: "She _______ to the library yesterday."', ["--- Pilih ---", "go", "went", "gone", "going"], "went", "Ghost Writer", "👻"),
         ('Apa sinonim dari kata "Brave"?', ["--- Pilih ---", "Coward", "Courageous", "Lazy", "Sad"], "Courageous", "Knight Honor", "🛡️"),
         ('Apa bentuk V2 (Past Tense) dari "Eat"?', ["--- Pilih ---", "Eaten", "Ate", "Eating", "Eats"], "Ate", "Tense Dragon", "🐲"),
-        ('Lengkapi kalimat: "They _______ football last Sunday."', ["--- Pilih ---", "play", "playing", "played", "plays"], "played", "Sports Panther", "🐅"),
-        ('Apa arti dari kata "Smart"?', ["--- Pilih ---", "Bodoh", "Cerdas", "Malas", "Lambat"], "Cerdas", "Wise Owl", "🦉"),
-        ('Lengkapi kalimat: "He has _______ finished his homework."', ["--- Pilih ---", "already", "yet", "still", "ever"], "already", "Time Warden", "⏳"),
-        ('Apa bentuk V3 (Past Participle) dari "Go"?', ["--- Pilih ---", "Went", "Gone", "Going", "Goes"], "Gone", "Grammar Knight", "⚔️"),
-        ('Lengkapi kalimat: "We _______ a movie last night."', ["--- Pilih ---", "watch", "watched", "watching", "watches"], "watched", "Cinema Phantom", "🎬")
+        ('Apa arti dari kata "Smart"?', ["--- Pilih ---", "Bodoh", "Cerdas", "Malas", "Lambat"], "Cerdas", "Wise Owl", "🦉")
     ])
 ]
+
+MATCH_DATA = [
+    {"term": "Python", "def": "Bahasa Pemrograman AI & Web"},
+    {"term": "MySQL", "def": "Sistem Database Relasional"},
+    {"term": "Streamlit", "def": "Framework Web App Python"},
+    {"term": "Algorithm", "def": "Langkah-langkah Logis Penyelesaian Masalah"},
+    {"term": "RAM", "def": "Memori Penyimpanan Sementara"}
+]
+
+WORD_GUESS_DATA = [
+    {"word": "PYTHON", "hint": "Bahasa pemograman yang sering digunakan untuk AI & Data Science"},
+    {"word": "DATABASE", "hint": "Tempat penyimpanan data terstruktur di sistem komputer"},
+    {"word": "ALGORITMA", "hint": "Urutan langkah logis untuk menyelesaikan masalah"},
+    {"word": "HARDWARE", "hint": "Komponen fisik pada sistem komputer"}
+]
+
+# ==================== HELPER FUNCTIONS ====================
+def get_user_stats(username):
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT total_xp, games_played FROM user_stats WHERE username = %s", (username,))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if row:
+            return row["total_xp"], row["games_played"]
+    return 0, 0
+
+def add_xp(username, xp_gained):
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO user_stats (username, total_xp, games_played) 
+            VALUES (%s, %s, 1)
+            ON DUPLICATE KEY UPDATE total_xp = total_xp + %s, games_played = games_played + 1
+        """, (username, xp_gained, xp_gained))
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+def save_score_to_mysql(game_type, score):
+    if not st.session_state.saved_to_db:
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+            query = "INSERT INTO highscores (username, game_type, mode, score) VALUES (%s, %s, %s, %s)"
+            values = (st.session_state.username, game_type, st.session_state.mode, score)
+            cursor.execute(query, values)
+            conn.commit()
+            cursor.close()
+            conn.close()
+            add_xp(st.session_state.username, score)
+            st.session_state.saved_to_db = True
+
+def get_badge(xp):
+    if xp >= 300:
+        return "🥇 Master Belajar"
+    elif xp >= 100:
+        return "🥈 Jago Kuis"
+    else:
+        return "🥉 Pemula"
 
 def get_new_question(mode):
     bank = MATH_BANK if mode == "math" else ENGLISH_BANK
@@ -191,84 +307,162 @@ def get_new_question(mode):
     st.session_state.start_time = time.time()
     return chosen
 
-def save_score_to_mysql():
-    if not st.session_state.saved_to_db:
-        conn = get_db_connection()
-        if conn:
-            cursor = conn.cursor()
-            query = "INSERT INTO highscores (username, mode, score) VALUES (%s, %s, %s)"
-            values = (st.session_state.username, st.session_state.mode, st.session_state.score)
-            cursor.execute(query, values)
-            conn.commit()
-            cursor.close()
-            conn.close()
-            st.session_state.saved_to_db = True
-
 # ==================== HALAMAN 1: LOGIN ====================
 if st.session_state.page == "login":
     st.markdown("<h1 class='game-title'>Smart Learning Hub</h1>", unsafe_allow_html=True)
-    st.markdown("<div class='game-subtitle'>Interactive Learning Platform</div>", unsafe_allow_html=True)
+    st.markdown("<div class='game-subtitle'>Belajar jadi lebih seru!</div>", unsafe_allow_html=True)
     
     st.markdown("""
         <div class='card-unified'>
             <div class='cartoon-row'>🚀 🦊 🦖 🦉 🧙‍♂️ 🌟 🎮</div>
             <h3 style='margin-bottom: 5px; color: #ffffff;'>👋 Selamat Datang!</h3>
-            <p style='color: #cbd5e1; margin-bottom: 20px;'>Silakan masukkan nama kamu sebelum memulai petualangan belajar.</p>
+            <p style='color: #cbd5e1; margin-bottom: 20px;'>Silakan masukkan nama kamu untuk membuka Dashboard Progres.</p>
         </div>
     """, unsafe_allow_html=True)
     
     st.session_state.username = st.text_input("Masukkan Nama:", value=st.session_state.username, placeholder="Contoh: Salwa")
     
-    if st.button("Masuk ke Arena 🚀"):
+    if st.button("Masuk ke Dashboard 🚀"):
         if st.session_state.username.strip():
-            st.session_state.page = "welcome"
+            st.session_state.page = "dashboard"
             st.rerun()
         else:
             st.warning("Mohon isi nama kamu terlebih dahulu!")
 
-# ==================== HALAMAN 2: DASHBOARD SAMBUTAN ====================
-elif st.session_state.page == "welcome":
+# ==================== HALAMAN 2: DASHBOARD PROGRES ====================
+elif st.session_state.page == "dashboard":
     st.markdown("<h1 class='game-title'>Smart Learning Hub</h1>", unsafe_allow_html=True)
-    st.markdown("<div class='game-subtitle'>Interactive Learning Platform</div>", unsafe_allow_html=True)
+    st.markdown("<div class='game-subtitle'>Platform Edukasi Gamifikasi</div>", unsafe_allow_html=True)
+
+    xp, games_cnt = get_user_stats(st.session_state.username)
+    level = (xp // 50) + 1
+    badge = get_badge(xp)
+
+    # Header Progres Belajar
+    st.markdown(f"<h3 style='color: #38bdf8;'>PROGRES BELAJAR ({st.session_state.username})</h3>", unsafe_allow_html=True)
     
-    st.markdown(f"""
-        <div class='card-unified' style='text-align: center;'>
-            <div class='cartoon-row'>🌟 🦉 🎮 ✨ 🧭</div>
-            <h2 style='color: #38bdf8; margin-bottom: 5px;'>Halo, {st.session_state.username}! 👋</h2>
-            <p style='font-size: 1rem; color: #cbd5e1;'>Siap menguji kemampuanmu dengan batas waktu menjawab? Pilih tantangan di bawah:</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown(f"""
+            <div class='stat-box'>
+                <div class='stat-val'>🏆 {xp}</div>
+                <div class='stat-lbl'>Total XP</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with c2:
+        st.markdown(f"""
+            <div class='stat-box'>
+                <div class='stat-val'>🎮 {games_cnt}</div>
+                <div class='stat-lbl'>Game Selesai</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with c3:
+        st.markdown(f"""
+            <div class='stat-box'>
+                <div class='stat-val'>⭐ Lvl {level}</div>
+                <div class='stat-lbl'>Tingkat Level</div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown(f"<p style='margin-top: 15px;'>Badge Saat Ini: <b>{badge}</b></p>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    # Menu Pilih Permainan
+    st.markdown("### 🎯 Pilih Permainan")
+
+    col_g1, col_g2 = st.columns(2)
+    with col_g1:
+        st.markdown("""
+            <div class='card-unified' style='margin-bottom: 10px;'>
+                <h4>⚔️ Quiz Battle</h4>
+                <p style='font-size: 0.85rem; color: #cbd5e1;'>Jawab pertanyaan pilihan ganda & matematika sebelum waktu habis.</p>
+            </div>
+        """, unsafe_allow_html=True)
+        if st.button("Main Quiz Battle"):
+            st.session_state.page = "mode_select_quiz"
+            st.rerun()
+
+    with col_g2:
+        st.markdown("""
+            <div class='card-unified' style='margin-bottom: 10px;'>
+                <h4>🧩 Match the Answer</h4>
+                <p style='font-size: 0.85rem; color: #cbd5e1;'>Pasangkan istilah komputer dengan definisinya yang tepat.</p>
+            </div>
+        """, unsafe_allow_html=True)
+        if st.button("Main Cocokkan Jawaban"):
+            st.session_state.score = 0
+            st.session_state.game_over = False
+            st.session_state.saved_to_db = False
+            st.session_state.matched_count = 0
+            st.session_state.page = "game_match"
+            st.rerun()
+
+    col_g3, col_g4 = st.columns(2)
+    with col_g3:
+        st.markdown("""
+            <div class='card-unified' style='margin-bottom: 10px;'>
+                <h4>🔤 Tebak Kata</h4>
+                <p style='font-size: 0.85rem; color: #cbd5e1;'>Tebak istilah berdasarkan clue petunjuk yang diberikan.</p>
+            </div>
+        """, unsafe_allow_html=True)
+        if st.button("Main Tebak Kata"):
+            chosen_w = random.choice(WORD_GUESS_DATA)
+            st.session_state.word_target = chosen_w["word"]
+            st.session_state.word_hint = chosen_w["hint"]
+            st.session_state.score = 0
+            st.session_state.game_over = False
+            st.session_state.saved_to_db = False
+            st.session_state.page = "game_word"
+            st.rerun()
+
+    with col_g4:
+        st.markdown("""
+            <div class='card-unified' style='margin-bottom: 10px;'>
+                <h4>🏆 Leaderboard</h4>
+                <p style='font-size: 0.85rem; color: #cbd5e1;'>Lihat papan peringkat pemain dengan XP & skor tertinggi.</p>
+            </div>
+        """, unsafe_allow_html=True)
+        if st.button("Lihat Papan Peringkat"):
+            st.session_state.page = "leaderboard"
+            st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("⬅️ Ganti Akun"):
+        st.session_state.page = "login"
+        st.rerun()
+
+# ==================== SUB-PAGE: PILIH MODE QUIZ BATTLE ====================
+elif st.session_state.page == "mode_select_quiz":
+    st.markdown("<h2 style='text-align: center;'>⚔️ Pilih Mode Quiz Battle</h2>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("Mulai Matematika 🧮"):
+        if st.button("Mode Matematika 🧮"):
             st.session_state.mode = "math"
             st.session_state.score = 0
             st.session_state.game_over = False
             st.session_state.saved_to_db = False
             st.session_state.used_questions = []
             st.session_state.current_q = get_new_question("math")
-            st.session_state.page = "game"
+            st.session_state.page = "game_quiz"
             st.rerun()
 
     with col2:
-        if st.button("Mulai B. Inggris 📚"):
+        if st.button("Mode Bahasa Inggris 📚"):
             st.session_state.mode = "english"
             st.session_state.score = 0
             st.session_state.game_over = False
             st.session_state.saved_to_db = False
             st.session_state.used_questions = []
             st.session_state.current_q = get_new_question("english")
-            st.session_state.page = "game"
+            st.session_state.page = "game_quiz"
             st.rerun()
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("⬅️ Ganti Nama User"):
-        st.session_state.page = "login"
+    if st.button("⬅️ Kembali ke Dashboard"):
+        st.session_state.page = "dashboard"
         st.rerun()
 
-# ==================== HALAMAN 3: GAMEPLAY ARENA DENGAN TIMER AKTIF ====================
-elif st.session_state.page == "game":
+# ==================== GAME 1: QUIZ BATTLE ====================
+elif st.session_state.page == "game_quiz":
     elapsed_time = time.time() - st.session_state.start_time
     remaining_time = max(0, int(TIME_LIMIT - elapsed_time))
 
@@ -278,7 +472,7 @@ elif st.session_state.page == "game":
         st.rerun()
 
     if st.session_state.game_over:
-        save_score_to_mysql()
+        save_score_to_mysql("Quiz Battle", st.session_state.score)
 
         st.markdown("<h2 style='text-align: center; color: #f87171;'>Permainan Berakhir</h2>", unsafe_allow_html=True)
         st.markdown(f"<p style='text-align: center; color: #e2e8f0; font-size: 1.1rem;'>{st.session_state.wrong_msg}</p>", unsafe_allow_html=True)
@@ -286,9 +480,9 @@ elif st.session_state.page == "game":
         st.markdown(f"""
             <div class='card-unified' style='text-align: center;'>
                 <div class='cartoon-row'>🏆 💀 ✨ 📉 🎮</div>
-                <p style='font-size: 1.1rem; margin-bottom: 5px; color: #ffffff;'>Total Skor Akhir Kamu:</p>
-                <h1 style='color: #38bdf8; font-size: 3rem; margin-top: 0;'>{st.session_state.score}</h1>
-                <p style='color: #34d399; font-size: 0.85rem; margin-top: 10px;'>✓ Riwayat skor berhasil dicatat!</p>
+                <p style='font-size: 1.1rem; margin-bottom: 5px; color: #ffffff;'>Total Skor / XP Diperoleh:</p>
+                <h1 style='color: #38bdf8; font-size: 3rem; margin-top: 0;'>+{st.session_state.score} XP</h1>
+                <p style='color: #34d399; font-size: 0.85rem; margin-top: 10px;'>✓ Riwayat skor & XP berhasil dicatat ke database!</p>
             </div>
         """, unsafe_allow_html=True)
         
@@ -302,8 +496,8 @@ elif st.session_state.page == "game":
                 st.session_state.current_q = get_new_question(st.session_state.mode)
                 st.rerun()
         with col_b:
-            if st.button("Kembali ke Menu"):
-                st.session_state.page = "welcome"
+            if st.button("Kembali ke Dashboard"):
+                st.session_state.page = "dashboard"
                 st.rerun()
         st.stop()
 
@@ -317,7 +511,6 @@ elif st.session_state.page == "game":
         </div>
     """, unsafe_allow_html=True)
     
-    # Menampilkan Emoji Monster Animasi Bergerak (Memantul halus)
     st.markdown(f"""
         <div class='card-unified'>
             <div class='cartoon-row'>🎯 ⚔️ 🧩 🔮 🚀</div>
@@ -354,10 +547,113 @@ elif st.session_state.page == "game":
                 st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("Keluar ke Menu Dashboard"):
-        st.session_state.page = "welcome"
+    if st.button("Keluar ke Dashboard"):
+        st.session_state.page = "dashboard"
         st.rerun()
 
-    # Auto-refresh hitung mundur timer setiap detik
     time.sleep(1)
     st.rerun()
+
+# ==================== GAME 2: MATCH THE ANSWER ====================
+elif st.session_state.page == "game_match":
+    st.markdown("<h2 style='text-align: center;'>🧩 Match the Answer</h2>", unsafe_allow_html=True)
+    st.write("Pasangkan istilah di sebelah kiri dengan definisi yang benar di sebelah kanan.")
+
+    if st.session_state.matched_count == len(MATCH_DATA):
+        st.session_state.score = 50
+        save_score_to_mysql("Match Answer", st.session_state.score)
+        st.success("🎉 Selamat! Kamu berhasil memasangkan semua istilah dengan benar (+50 XP)!")
+        if st.button("Kembali ke Dashboard"):
+            st.session_state.page = "dashboard"
+            st.rerun()
+        st.stop()
+
+    for item in MATCH_DATA:
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            st.info(f"📌 **{item['term']}**")
+        with col2:
+            options = ["--- Pilih Definisi ---"] + [d["def"] for d in MATCH_DATA]
+            user_choice = st.selectbox(f"Definisi {item['term']}:", options, key=f"match_{item['term']}")
+            if user_choice == item["def"]:
+                st.caption("✅ Cocok!")
+
+    if st.button("Cek Semua Pasangan"):
+        correct_all = True
+        for item in MATCH_DATA:
+            if st.session_state.get(f"match_{item['term']}") != item["def"]:
+                correct_all = False
+                break
+        if correct_all:
+            st.session_state.matched_count = len(MATCH_DATA)
+            st.rerun()
+        else:
+            st.error("Masih ada pasangan yang belum tepat. Silakan periksa kembali!")
+
+    if st.button("Kembali ke Dashboard"):
+        st.session_state.page = "dashboard"
+        st.rerun()
+
+# ==================== GAME 3: TEBAK KATA ====================
+elif st.session_state.page == "game_word":
+    st.markdown("<h2 style='text-align: center;'>🔤 Tebak Kata</h2>", unsafe_allow_html=True)
+    
+    st.markdown(f"""
+        <div class='card-unified'>
+            <h4>💡 Petunjuk (Clue):</h4>
+            <p style='font-size: 1.1rem; color: #38bdf8;'>"{st.session_state.word_hint}"</p>
+            <p>Panjang kata: <b>{len(st.session_state.word_target)} Huruf</b></p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    guess = st.text_input("Masukkan kata tebakanmu (Huruf Besar/Kecil Bebas):", placeholder="Ketik jawaban di sini...").strip().upper()
+
+    if st.button("Kirim Tebakan"):
+        if guess == st.session_state.word_target:
+            st.session_state.score = 30
+            save_score_to_mysql("Tebak Kata", st.session_state.score)
+            st.success(f"🎉 TEPAT SEKALI! Jawabannya adalah **{st.session_state.word_target}** (+30 XP)!")
+            st.session_state.game_over = True
+        else:
+            st.error("Tebakanmu masih belum tepat, coba lagi!")
+
+    if st.session_state.game_over:
+        if st.button("Kembali ke Dashboard"):
+            st.session_state.page = "dashboard"
+            st.rerun()
+
+    if st.button("Kembali ke Dashboard"):
+        st.session_state.page = "dashboard"
+        st.rerun()
+
+# ==================== HALAMAN 4: LEADERBOARD ====================
+elif st.session_state.page == "leaderboard":
+    st.markdown("<h2 style='text-align: center;'>🏆 Papan Peringkat (Leaderboard)</h2>", unsafe_allow_html=True)
+    st.write("Daftar pemain dengan XP tertinggi yang tersimpan di Database MySQL:")
+
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT username, total_xp, games_played FROM user_stats ORDER BY total_xp DESC LIMIT 10")
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        if rows:
+            leaderboard_data = []
+            for i, r in enumerate(rows, start=1):
+                badge = get_badge(r["total_xp"])
+                leaderboard_data.append({
+                    "Peringkat": f"#{i}",
+                    "Pemain": r["username"],
+                    "Total XP": r["total_xp"],
+                    "Game Selesai": r["games_played"],
+                    "Badge": badge
+                })
+            st.table(leaderboard_data)
+        else:
+            st.info("Belum ada data pemain. Jadilah yang pertama bermain!")
+
+    if st.button("⬅️ Kembali ke Dashboard"):
+        st.session_state.page = "dashboard"
+        st.rerun()
