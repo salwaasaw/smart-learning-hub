@@ -59,14 +59,16 @@ def setup_database_tables():
         cursor.close()
         conn.close()
 
-setup_database_tables()
+# AGAR TIDAK LAG: Tabel hanya di-setup sekali saja per sesi, bukan di-run tiap detik/klik
+if "db_initialized" not in st.session_state:
+    setup_database_tables()
+    st.session_state.db_initialized = True
 
 # ==================== STYLING CSS RINGAN & OPTIMAL ====================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
 
-    /* Latar belakang statis yang elegan tanpa animasi berat */
     .stApp {
         background: linear-gradient(135deg, #0f172a, #1e1b4b, #311042);
         font-family: 'Plus Jakarta Sans', sans-serif;
@@ -97,7 +99,6 @@ st.markdown("""
         font-weight: 700;
     }
 
-    /* Kartu dipercepat tanpa efek blur (backdrop-filter dihapus agar tidak ngelag) */
     .card-unified {
         background: rgba(15, 23, 42, 0.92);
         border: 1px solid rgba(255, 255, 255, 0.15);
@@ -116,7 +117,6 @@ st.markdown("""
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* Emoji monster dibuat statis agar browser tidak terbebani render ulang */
     .monster-emoji {
         text-align: center;
         font-size: 4.5rem;
